@@ -2,138 +2,207 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ai Rummy | Professional 4-Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ai Rummy Mobile</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <style>
-        :root { --felt: #1a472a; --gold: #f1c40f; --ai-cyan: #00f2ff; --card-w: 62px; --card-h: 90px; }
-        body, html { margin: 0; padding: 0; height: 100%; background: #050505; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        :root { 
+            --matrix-green: #00ff41; 
+            --gold: #f1c40f; 
+            --ai-cyan: #00f2ff; 
+            /* Scalable card sizes */
+            --card-w: 14vw; 
+            --card-h: 20vw;
+            --max-card-w: 60px;
+            --max-card-h: 85px;
+        }
 
-        /* --- DASHBOARD --- */
+        body, html { 
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background: #000; color: white; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; touch-action: none; 
+        }
+
+        /* --- MOBILE RESPONSIVE WRAPPER --- */
+        .app-container {
+            display: flex; flex-direction: column; height: 100%; width: 100%;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* --- MATRIX BG --- */
+        #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.2; }
+
+        /* --- WELCOME SCREEN (Mobile) --- */
         #home-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('http://googleusercontent.com/image_generation_content/0');
-            background-size: cover; background-position: center;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000;
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, #000 100%);
+            padding: 20px; text-align: center;
+        }
+        .main-title { font-size: 12vw; max-font-size: 60px; color: #fff; margin: 0; text-shadow: 0 0 15px var(--matrix-green); }
+        .bot-avatar { 
+            width: 30vw; height: 30vw; max-width: 120px; max-height: 120px;
+            border-radius: 50%; border: 3px solid var(--matrix-green);
+            background: url('http://googleusercontent.com/image_generation_content/0');
+            background-size: cover; margin: 20px 0; box-shadow: 0 0 20px var(--matrix-green);
         }
 
-        /* --- TABLE LAYOUT --- */
-        .game-area { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; position: relative; }
-        .table-container { 
-            position: relative; width: 620px; height: 360px;
+        /* --- GAME TABLE (Responsive) --- */
+        #game-ui { display: none; flex: 1; flex-direction: column; z-index: 10; }
+        
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 15px; background: rgba(20,20,20,0.9); border-bottom: 1px solid var(--matrix-green);
+        }
+
+        .table-area {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        
+        .responsive-table {
+            width: 85vw; height: 50vw; max-width: 500px; max-height: 280px;
             background: radial-gradient(circle, #2a633d 0%, #1a472a 70%, #0b2415 100%);
-            border: 12px solid #3d2b1f; border-radius: 50%; box-shadow: inset 0 0 80px black, 0 20px 50px rgba(0,0,0,0.7);
+            border: 8px solid #3d2b1f; border-radius: 100px;
             display: flex; justify-content: center; align-items: center;
+            box-shadow: inset 0 0 40px #000;
         }
 
-        /* --- AI PLAYERS & CHAT --- */
-        .player-seat { position: absolute; display: flex; flex-direction: column; align-items: center; z-index: 5; }
-        .avatar { 
-            width: 75px; height: 75px; border-radius: 50%; border: 3px solid #333; 
-            background-size: cover; background-position: center; transition: 0.3s;
+        /* --- MOBILE CARDS --- */
+        .card {
+            width: var(--card-w); height: var(--card-h);
+            max-width: var(--max-card-w); max-height: var(--max-card-h);
+            background: #fff; border-radius: 4px; color: #000;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 4px; font-weight: bold; font-size: 0.8rem;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5); border: 1px solid #999;
+            margin-left: -8vw; transition: transform 0.2s;
         }
-        .active-turn .avatar { border-color: var(--ai-cyan); box-shadow: 0 0 20px var(--ai-cyan); transform: scale(1.1); }
-        .chat-bubble { 
-            position: absolute; bottom: 85px; background: white; color: black; 
-            padding: 5px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: bold; 
-            white-space: nowrap; opacity: 0; transition: 0.3s; pointer-events: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .show-chat { opacity: 1; transform: translateY(-5px); }
-
-        .seat-top { top: -95px; } .seat-left { left: -100px; } .seat-right { right: -100px; } .seat-bottom { bottom: -120px; }
-
-        /* --- CARDS --- */
-        .card { 
-            width: var(--card-w); height: var(--card-h); background: white; border-radius: 6px; color: black; 
-            position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 5px; 
-            box-sizing: border-box; box-shadow: 2px 3px 6px rgba(0,0,0,0.4); cursor: pointer; border: 1px solid #ccc; 
-            font-weight: bold; margin-left: -35px; transition: transform 0.2s; font-size: 0.9rem;
-        }
+        @media (min-width: 600px) { .card { margin-left: -30px; } }
         .card:first-child { margin-left: 0; }
-        .card.red { color: #c0392b; }
-        .card.selected { transform: translateY(-30px); border: 3px solid var(--gold); z-index: 100; }
-        .card.back { background: #c0392b; border: 2px solid white; background-image: radial-gradient(white 10%, transparent 11%); background-size: 10px 10px; }
-        .is-joker::after { content: '★'; position: absolute; top: 2px; right: 2px; color: var(--gold); }
+        .card.red { color: #d00; }
+        .card.selected { transform: translateY(-15px); border: 2px solid var(--gold); }
+        .card.back { background: #c00; border: 1px solid #fff; }
 
         /* --- HAND SLOTS --- */
-        #hand-container { display: flex; gap: 12px; margin-top: 130px; z-index: 10; }
-        .group-slot { display: flex; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px 10px; min-width: 60px; border: 1px solid #333; min-height: 100px; }
+        .hand-scroll {
+            width: 100%; overflow-x: auto; white-space: nowrap;
+            padding: 15px 10px; background: rgba(0,0,0,0.5);
+            -webkit-overflow-scrolling: touch;
+        }
+        .group-slot {
+            display: inline-flex; min-width: 60px; padding: 10px;
+            background: rgba(255,255,255,0.05); border: 1px dashed #444;
+            border-radius: 6px; margin-right: 10px; vertical-align: top;
+        }
 
-        .btn-row { margin-top: 20px; display: flex; gap: 10px; }
-        .btn { padding: 10px 24px; border-radius: 25px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; box-shadow: 0 4px #999; }
-        .btn:active { transform: translateY(2px); box-shadow: 0 2px #666; }
-        .btn-gold { background: var(--gold); color: #000; }
+        /* --- BUTTONS --- */
+        .controls {
+            display: flex; justify-content: space-around; padding: 10px;
+            background: #111; gap: 5px;
+        }
+        .btn {
+            flex: 1; padding: 12px 5px; border-radius: 8px; border: none;
+            font-weight: bold; font-size: 0.75rem; text-transform: uppercase;
+            cursor: pointer; color: #000;
+        }
+        .btn-gold { background: var(--gold); }
+        .btn-action { background: var(--matrix-green); }
+        .btn-drop { background: #444; color: #fff; }
+
+        .is-joker::after { content: '★'; position: absolute; top: 0; right: 2px; color: var(--gold); font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
-    <div id="home-screen">
-        <h1 style="font-size: 4rem; color: #fff; text-shadow: 0 0 20px var(--gold); margin:0;">Ai Rummy</h1>
-        <p style="color: var(--gold); letter-spacing: 4px; font-weight: bold; margin-bottom: 30px;">NEW YEAR 2026 EDITION</p>
-        <button class="btn btn-gold" style="padding: 15px 50px; font-size: 1.2rem;" onclick="startGame()">SIT AT TABLE</button>
-    </div>
+    <canvas id="matrix-bg"></canvas>
 
-    <div class="game-area" id="game-ui">
-        <div class="table-container">
-            <div class="player-seat seat-top" id="ai-0">
-                <div class="chat-bubble" id="chat-0">Your turn!</div>
-                <div class="avatar" style="background-image: url('http://googleusercontent.com/image_generation_content/0')"></div>
-                <div style="font-size: 0.7rem; margin-top:5px; color:var(--gold);">SANTOSH (AI)</div>
-            </div>
-            <div class="player-seat seat-left" id="ai-1">
-                <div class="chat-bubble" id="chat-1">Good move.</div>
-                <div class="avatar" style="background-image: url('https://i.pravatar.cc/150?u=priya')"></div>
-                <div style="font-size: 0.7rem; margin-top:5px;">PRIYA</div>
-            </div>
-            <div class="player-seat seat-right" id="ai-2">
-                <div class="chat-bubble" id="chat-2">Hmm...</div>
-                <div class="avatar" style="background-image: url('https://i.pravatar.cc/150?u=vikram')"></div>
-                <div style="font-size: 0.7rem; margin-top:5px;">VIKRAM</div>
-            </div>
-
-            <div style="display: flex; gap: 50px; position: relative;">
-                <div id="wj-card" class="card" style="position:absolute; left:-15px; top:5px; transform:rotate(-90deg); border: 2.3px solid var(--gold);"></div>
-                <div class="card back" onclick="handleDraw('deck')"></div>
-                <div id="discard-p" class="card" onclick="handleDraw('discard')"></div>
-            </div>
+    <div class="app-container">
+        <div id="home-screen">
+            <div class="festive-tag">HAPPY NEW YEAR 2026</div>
+            <h1 class="main-title">Ai Rummy</h1>
+            <div class="bot-avatar"></div>
+            <p style="color: var(--ai-cyan); font-size: 0.9rem;">ENCRYPTED DUEL v1.0</p>
+            <button class="btn btn-action" style="margin-top:20px; width: 200px; font-size: 1rem;" onclick="startGame()">START DUEL</button>
         </div>
 
-        <div id="hand-container">
-            <div class="group-slot" id="g0" ondrop="drop(event, 0)" ondragover="allow(event)"></div>
-            <div class="group-slot" id="g1" ondrop="drop(event, 1)" ondragover="allow(event)"></div>
-            <div class="group-slot" id="g2" ondrop="drop(event, 2)" ondragover="allow(event)"></div>
-            <div class="group-slot" id="g3" ondrop="drop(event, 3)" ondragover="allow(event)"></div>
-        </div>
+        <div id="game-ui">
+            <div class="top-bar">
+                <button class="btn btn-drop" style="flex:none; width:60px;" onclick="location.reload()">EXIT</button>
+                <div style="color:var(--gold); font-size: 0.9rem;">YOU: <span id="p-score">0</span> | AI: <span id="s-score">0</span></div>
+                <div style="width:60px;"></div>
+            </div>
 
-        <div class="btn-row">
-            <button class="btn btn-gold" onclick="autoSort()">Sort</button>
-            <button class="btn btn-gold" style="background:#e67e22; color:white;" onclick="handleDiscard()">Discard</button>
-            <button class="btn btn-gold" style="background:#27ae60; color:white;" onclick="handleShow()">Declare</button>
-            <button class="btn" style="background:#444; color:white;" onclick="handleDrop()">Drop</button>
+            <div class="table-area">
+                <div class="responsive-table">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div id="wj-card" class="card" style="transform: rotate(-90deg); margin:0;"></div>
+                        <div class="card back" onclick="draw('deck')"></div>
+                        <div id="discard-p" class="card" style="margin:0;" onclick="draw('discard')"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hand-scroll">
+                <div class="group-slot" id="g0" ondrop="drop(event, 0)" ondragover="allow(event)"></div>
+                <div class="group-slot" id="g1" ondrop="drop(event, 1)" ondragover="allow(event)"></div>
+                <div class="group-slot" id="g2" ondrop="drop(event, 2)" ondragover="allow(event)"></div>
+                <div class="group-slot" id="g3" ondrop="drop(event, 3)" ondragover="allow(event)"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-gold" onclick="autoSort()">SORT</button>
+                <button class="btn btn-action" onclick="discardCard()">DISCARD</button>
+                <button class="btn btn-action" style="background:#27ae60; color:#fff" onclick="show()">DECLARE</button>
+                <button class="btn btn-drop" onclick="dropBtn()">DROP</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const suits = ['♠', '♣', '♥', '♦'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-        const aiLines = ["My turn!", "Let's see...", "Nice play!", "Thinking...", "I need that card!", "Good luck!"];
+        // Matrix Rain (Optimized for Mobile)
+        const canvas = document.getElementById('matrix-bg');
+        const ctx = canvas.getContext('2d');
+        let columns, drops;
+        function resize() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            columns = canvas.width / 20; drops = Array(Math.floor(columns)).fill(1);
+        }
+        window.addEventListener('resize', resize); resize();
+        function matrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f0'; ctx.font = '15px monospace';
+            drops.forEach((y, i) => {
+                const text = String.fromCharCode(0x30A0 + Math.random() * 96);
+                ctx.fillText(text, i * 20, y * 20);
+                if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+        setInterval(matrix, 60);
+
+        // Core Game Variables
         let groups = [[],[],[],[]], deck = [], discard = [], wildJoker = null, selected = null;
-        let pScore = 0, currentTurn = 3; 
+        const suits = ['♠', '♣', '♥', '♦'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 
         function startGame() {
             document.getElementById('home-screen').style.display = 'none';
             document.getElementById('game-ui').style.display = 'flex';
-            initRound();
+            init();
         }
 
-        function initRound() {
+        function init() {
             deck = [];
             for(let s of suits) for(let r of ranks) deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black'});
             deck.sort(() => Math.random() - 0.5);
             wildJoker = deck.pop();
-            let fullHand = deck.splice(0, 13);
-            groups = [fullHand.splice(0,3), fullHand.splice(0,3), fullHand.splice(0,3), fullHand];
+            let hand = deck.splice(0, 13);
+            groups = [hand.splice(0,3), hand.splice(0,3), hand.splice(0,3), hand];
             discard = [deck.pop()];
-            currentTurn = 3;
             render();
         }
 
@@ -141,84 +210,60 @@
             const wj = document.getElementById('wj-card');
             wj.className = `card ${wildJoker.c}`;
             wj.innerHTML = `<span>${wildJoker.r}<br>${wildJoker.s}</span>`;
+            
             const dp = document.getElementById('discard-p');
             const top = discard[discard.length-1];
             dp.className = `card ${top.c} ${top.r === wildJoker.r ? 'is-joker' : ''}`;
             dp.innerHTML = `<span>${top.r}<br>${top.s}</span>`;
 
             groups.forEach((group, gIdx) => {
-                const zone = document.getElementById(`g${gIdx}`); zone.innerHTML = '';
+                const zone = document.getElementById(`g${gIdx}`); 
+                zone.innerHTML = '';
                 group.forEach((card, cIdx) => {
                     const div = document.createElement('div');
-                    const isSel = selected?.g === gIdx && selected?.c === cIdx;
-                    div.className = `card ${card.c} ${isSel ? 'selected' : ''} ${card.r === wildJoker.r ? 'is-joker' : ''}`;
-                    div.draggable = true;
+                    div.className = `card ${card.c} ${selected?.g === gIdx && selected?.c === cIdx ? 'selected' : ''} ${card.r === wildJoker.r ? 'is-joker' : ''}`;
                     div.innerHTML = `<span>${card.r}<br>${card.s}</span>`;
-                    div.onclick = () => { selected = {g: gIdx, c: cIdx}; render(); };
-                    div.ondragstart = () => { selected = {g: gIdx, c: cIdx}; };
+                    div.onclick = (e) => { 
+                        e.stopPropagation();
+                        selected = {g: gIdx, c: cIdx}; 
+                        render(); 
+                    };
                     zone.appendChild(div);
                 });
             });
         }
 
-        function handleDraw(src) {
-            if(currentTurn === 3 && groups.flat().length < 14) {
-                groups[3].push(src === 'deck' ? deck.pop() : discard.pop());
+        function draw(src) {
+            if(groups.flat().length < 14) {
+                const card = (src === 'deck') ? deck.pop() : discard.pop();
+                groups[3].push(card);
                 render();
             }
         }
 
-        function handleDiscard() {
-            if(currentTurn === 3 && selected && groups.flat().length === 14) {
+        function discardCard() {
+            if(selected && groups.flat().length === 14) {
                 discard.push(groups[selected.g].splice(selected.c, 1)[0]);
                 selected = null; render();
-                startAiSequence();
+                // Simple AI turn
+                setTimeout(() => { if(deck.length > 0) discard.push(deck.pop()); render(); }, 1000);
             }
-        }
-
-        function startAiSequence() {
-            currentTurn = 0;
-            processNextAi();
-        }
-
-        function processNextAi() {
-            if(currentTurn >= 3) {
-                currentTurn = 3;
-                document.querySelectorAll('.player-seat').forEach(s => s.classList.remove('active-turn'));
-                return;
-            }
-
-            document.querySelectorAll('.player-seat').forEach(s => s.classList.remove('active-turn'));
-            const seat = document.getElementById(`ai-${currentTurn}`);
-            const bubble = document.getElementById(`chat-${currentTurn}`);
-            
-            seat.classList.add('active-turn');
-            bubble.innerText = aiLines[Math.floor(Math.random()*aiLines.length)];
-            bubble.classList.add('show-chat');
-
-            setTimeout(() => {
-                discard.push(deck.pop());
-                bubble.classList.remove('show-chat');
-                render();
-                currentTurn++;
-                processNextAi();
-            }, 1800);
         }
 
         function autoSort() {
-            let flat = groups.flat().sort((a,b) => suits.indexOf(a.s) - suits.indexOf(b.s) || ranks.indexOf(a.r) - ranks.indexOf(b.r));
-            groups = [flat.splice(0,3), flat.splice(0,3), flat.splice(0,3), flat];
+            let f = groups.flat().sort((a,b) => suits.indexOf(a.s) - suits.indexOf(b.s) || ranks.indexOf(a.r) - ranks.indexOf(b.r));
+            groups = [f.splice(0,3), f.splice(0,3), f.splice(0,3), f];
             render();
         }
 
-        function handleShow() { if(confirm("Declare Show?")) { alert("Victory! System Decrypted."); location.reload(); } }
-        function handleDrop() { if(confirm("Drop round? (20 pts)")) initRound(); }
+        function show() { if(confirm("Submit for show?")) init(); }
+        function dropBtn() { if(confirm("Drop round?")) init(); }
         function allow(e) { e.preventDefault(); }
-        function drop(e, targetGIdx) {
+        function drop(e, target) {
             e.preventDefault();
             if(!selected) return;
             const card = groups[selected.g].splice(selected.c, 1)[0];
-            groups[targetGIdx].push(card);
+            groups[target].push(card);
             selected = null; render();
         }
     </script>
