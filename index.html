@@ -3,206 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rummy Scorekeeper Mobile</title>
+    <title>13-Card Pro Rummy</title>
     <style>
         :root {
-            --primary: #2c3e50;
-            --accent: #27ae60;
-            --danger: #e74c3c;
-            --bg: #f4f7f6;
+            --felt-green: #1a472a;
+            --card-white: #ffffff;
+            --accent: #ffd700;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
+            font-family: sans-serif;
+            background-color: var(--felt-green);
+            color: white;
             margin: 0;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
+            padding: 10px;
+            user-select: none;
+            touch-action: none; /* Required for custom drag-drop */
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px; /* Perfect for phone screens */
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
+        .game-header { text-align: center; font-weight: bold; margin-bottom: 10px; }
 
-        h2 { text-align: center; color: var(--primary); margin-top: 0; }
-
-        /* Scoreboard Layout */
-        .scoreboard {
+        /* The 3-3-3-4 Grid */
+        .hand-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
-        .player-card {
-            background: #f8f9fa;
-            padding: 15px;
+        .group-box {
+            background: rgba(0,0,0,0.3);
+            border: 2px dashed rgba(255,255,255,0.2);
             border-radius: 10px;
+            min-height: 100px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            align-content: flex-start;
+        }
+
+        .group-box.drag-over { border-color: var(--accent); background: rgba(255,255,255,0.1); }
+
+        .group-label {
+            width: 100%;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #aaa;
             text-align: center;
-            border: 2px solid #eee;
+            margin-bottom: 5px;
         }
 
-        .player-card.active { border-color: var(--accent); }
-
-        .score-display {
-            font-size: 2.5rem;
-            font-weight: bold;
-            display: block;
-            margin: 5px 0;
-        }
-
-        /* Input Area */
-        .input-group {
+        /* Card Styling */
+        .card {
+            width: 45px;
+            height: 65px;
+            background: var(--card-white);
+            color: black;
+            border-radius: 4px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            justify-content: space-between;
+            padding: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            cursor: grab;
+            position: relative;
+            z-index: 10;
         }
 
-        input[type="number"] {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box; /* Prevents overflow */
-            -webkit-appearance: none; /* Removes iOS inner shadow */
-        }
+        .card.red { color: #e74c3c; }
+        .card.dragging { opacity: 0.5; cursor: grabbing; scale: 1.1; }
 
-        .btn-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .controls {
+            display: flex;
             gap: 10px;
+            position: fixed;
+            bottom: 20px;
+            left: 10px;
+            right: 10px;
         }
 
         button {
+            flex: 1;
             padding: 15px;
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
             border-radius: 8px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        button:active { opacity: 0.7; }
-
-        .btn-add { background: var(--accent); color: white; }
-        .btn-reset { background: var(--primary); color: white; }
-
-        /* History Table - Scrollable for mobile */
-        .history-container {
-            margin-top: 20px;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-        }
-
-        /* Large touch targets for buttons */
-        @media (max-width: 480px) {
-            .score-display { font-size: 2rem; }
-            button { padding: 18px; } /* Even bigger for thumbs */
+            border: none;
+            font-weight: bold;
+            background: var(--accent);
+            color: #000;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🎴 Rummy Score</h2>
-    
-    <div class="scoreboard">
-        <div class="player-card">
-            <div>You</div>
-            <span class="score-display" id="userScore">0</span>
-        </div>
-        <div class="player-card">
-            <div>Santosh</div>
-            <span class="score-display" id="santoshScore">0</span>
-        </div>
-    </div>
+<div class="game-header">ARRANGE YOUR HAND (3-3-3-4)</div>
 
-    <div class="input-group">
-        <div class="btn-row">
-            <input type="number" id="userIn" placeholder="Your Pts" inputmode="numeric">
-            <input type="number" id="santoshIn" placeholder="Santosh Pts" inputmode="numeric">
-        </div>
-        <button class="btn-add" onclick="addScores()">ADD ROUND</button>
-        <button class="btn-reset" onclick="resetGame()">RESET GAME</button>
+<div class="hand-grid">
+    <div class="group-box" id="group1" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <div class="group-label">Group 1 (3)</div>
     </div>
-
-    <div class="history-container">
-        <table id="historyTable">
-            <thead>
-                <tr>
-                    <th>Round</th>
-                    <th>You</th>
-                    <th>Santosh</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <div class="group-box" id="group2" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <div class="group-label">Group 2 (3)</div>
+    </div>
+    <div class="group-box" id="group3" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <div class="group-label">Group 3 (3)</div>
+    </div>
+    <div class="group-box" id="group4" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <div class="group-label">Group 4 (4)</div>
     </div>
 </div>
 
+<div class="controls">
+    <button onclick="dealGame()">NEW DEAL</button>
+    <button style="background: #3498db; color: white;" onclick="checkMeld()">VALIDATE</button>
+</div>
+
 <script>
-    let scores = JSON.parse(localStorage.getItem('rummyScores')) || { user: 0, santosh: 0, history: [] };
+    const suits = ['♠', '♥', '♣', '♦'];
+    const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
-    function updateUI() {
-        document.getElementById('userScore').innerText = scores.user;
-        document.getElementById('santoshScore').innerText = scores.santosh;
+    function dealGame() {
+        // Clear groups
+        document.querySelectorAll('.group-box').forEach(box => {
+            const label = box.querySelector('.group-label');
+            box.innerHTML = '';
+            box.appendChild(label);
+        });
+
+        // Create and Shuffle Deck
+        let deck = [];
+        suits.forEach(s => values.forEach(v => deck.push({s, v})));
+        deck.sort(() => Math.random() - 0.5);
         
-        const tbody = document.querySelector('#historyTable tbody');
-        tbody.innerHTML = scores.history.map((r, i) => `
-            <tr>
-                <td>${i + 1}</td>
-                <td>${r.u}</td>
-                <td>${r.s}</td>
-            </tr>
-        `).join('');
+        // Deal 13 cards to Group 1 initially
+        const hand = deck.slice(0, 13);
+        const startBox = document.getElementById('group1');
         
-        localStorage.setItem('rummyScores', JSON.stringify(scores));
+        hand.forEach((card, i) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = `card ${ (card.s === '♥' || card.s === '♦') ? 'red' : '' }`;
+            cardEl.id = 'card-' + i;
+            cardEl.draggable = true;
+            cardEl.innerHTML = `<span>${card.v}</span><span style="align-self: flex-end">${card.s}</span>`;
+            
+            // Desktop Drag Events
+            cardEl.ondragstart = (e) => e.dataTransfer.setData("text", e.target.id);
+            
+            // Mobile Touch Support
+            cardEl.addEventListener('touchstart', touchStart, {passive: false});
+            cardEl.addEventListener('touchmove', touchMove, {passive: false});
+            cardEl.addEventListener('touchend', touchEnd);
+
+            startBox.appendChild(cardEl);
+        });
     }
 
-    function addScores() {
-        const uIn = parseInt(document.getElementById('userIn').value) || 0;
-        const sIn = parseInt(document.getElementById('santoshIn').value) || 0;
-
-        scores.user += uIn;
-        scores.santosh += sIn;
-        scores.history.push({ u: uIn, s: sIn });
-
-        document.getElementById('userIn').value = '';
-        document.getElementById('santoshIn').value = '';
-        updateUI();
-
-        if (scores.user >= 201 || scores.santosh >= 201) {
-            alert(scores.user >= 201 ? "Santosh Wins! (You crossed 201)" : "You Win! (Santosh crossed 201)");
+    // Standard Drag & Drop Logic
+    function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+    function drop(e) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        const id = e.dataTransfer.getData("text");
+        const card = document.getElementById(id);
+        if (e.currentTarget.classList.contains('group-box')) {
+            e.currentTarget.appendChild(card);
         }
     }
 
-    function resetGame() {
-        if(confirm("Start a new game?")) {
-            scores = { user: 0, santosh: 0, history: [] };
-            updateUI();
-        }
+    // Touch Support Logic (Simulated Drag)
+    let activeCard = null;
+    function touchStart(e) {
+        activeCard = e.currentTarget;
+        activeCard.classList.add('dragging');
     }
 
-    updateUI();
+    function touchMove(e) {
+        if (!activeCard) return;
+        const touch = e.touches[0];
+        activeCard.style.position = 'fixed';
+        activeCard.style.left = (touch.clientX - 25) + 'px';
+        activeCard.style.top = (touch.clientY - 40) + 'px';
+    }
+
+    function touchEnd(e) {
+        if (!activeCard) return;
+        activeCard.classList.remove('dragging');
+        activeCard.style.position = 'static';
+        
+        const touch = e.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const groupBox = target?.closest('.group-box');
+        
+        if (groupBox) {
+            groupBox.appendChild(activeCard);
+        }
+        activeCard = null;
+    }
+
+    function checkMeld() {
+        alert("Validating groups... You need at least 1 Pure Sequence to proceed!");
+    }
+
+    dealGame();
 </script>
 
 </body>
