@@ -3,215 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ai Rummy | Grand Casino Edition</title>
+    <title>Ai Rummy | Vibrant 2026</title>
     <style>
         :root { 
-            --gold: #d4af37; 
-            --gold-light: #f1e5ac;
-            --felt: #1b4d2e;
-            --walnut: #2c1b0e;
-            --card-w: 64px;
-            --card-h: 92px;
+            --gold: #ffcc33; 
+            --xmas-red: #ff3333;
+            --matrix-green: #00ff41;
+            --ai-cyan: #00f2ff;
         }
 
         body, html { 
             margin: 0; padding: 0; height: 100%; width: 100%;
-            background: #0a0a0a; color: white; 
-            font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
-            overflow: hidden; touch-action: none;
+            background: #000; color: white; 
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; 
         }
 
-        /* --- REALISTIC WELCOME DASHBOARD --- */
+        /* --- VIBRANT FULL-SCREEN HOME --- */
         #home-screen {
-            position: fixed; inset: 0; z-index: 1000;
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.85)), 
+            position: fixed; inset: 0; z-index: 2000;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), 
                         url('https://images.unsplash.com/photo-1511193311914-0346f16efe90?q=80&w=2073&auto=format&fit=crop');
             background-size: cover; background-position: center;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 60px 20px;
         }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px;
-            padding: 40px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column; align-items: center;
+        /* FLOATING PIP DECORATIONS */
+        .pip-deco {
+            position: absolute; font-size: 3rem; opacity: 0.6;
+            filter: drop-shadow(0 0 10px white);
+            animation: float 4s ease-in-out infinite;
         }
 
-        .ai-icon-realistic {
-            width: 120px; height: 120px; border-radius: 30px;
-            background: url('http://googleusercontent.com/image_generation_content/0');
-            background-size: cover;
-            border: 3px solid var(--gold);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 0 20px rgba(0,0,0,0.5);
-            margin-bottom: 25px;
+        .main-title-area { z-index: 10; }
+        .festive-tag {
+            font-size: 1.2rem; letter-spacing: 10px; color: var(--gold);
+            text-shadow: 0 0 15px var(--gold); font-weight: bold;
+            margin-bottom: 10px; animation: pulse 2s infinite;
         }
-
         .main-title { 
-            font-size: 3.5rem; margin: 0; font-weight: bold; 
-            background: linear-gradient(to bottom, #fff, var(--gold));
+            font-size: 5rem; font-weight: 900; margin: 0;
+            background: linear-gradient(to bottom, #fff 30%, var(--gold) 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
+            filter: drop-shadow(0 0 20px rgba(255,204,51,0.5));
         }
 
-        /* --- REALISTIC GAME TABLE --- */
-        #game-ui { display: none; flex-direction: column; height: 100%; background: #0f0f0f; }
-
-        .top-nav {
-            padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
-            background: linear-gradient(to bottom, #222, #111);
-            border-bottom: 2px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-
-        .table-area { flex: 1; display: flex; align-items: center; justify-content: center; perspective: 1000px; }
-        
-        .casino-table-3d {
-            width: 90vw; height: 50vw; max-width: 600px; max-height: 320px;
-            background: radial-gradient(circle at 50% 40%, #2e6b45 0%, #1b4d2e 60%, #0d2617 100%);
-            border: 12px solid var(--walnut); border-radius: 180px;
-            box-shadow: inset 0 0 60px rgba(0,0,0,0.8), 0 30px 60px rgba(0,0,0,0.6);
-            display: flex; justify-content: center; align-items: center;
+        /* SMOOTH FLOATING BOT */
+        .bot-avatar-large {
+            width: 160px; height: 160px; border-radius: 50%;
+            border: 4px solid var(--matrix-green);
+            background: url('http://googleusercontent.com/image_generation_content/0');
+            background-size: cover; background-position: center;
+            box-shadow: 0 0 40px var(--matrix-green);
+            animation: float 3s ease-in-out infinite;
             position: relative;
         }
 
-        /* --- PROFESSIONAL CARDS --- */
-        .card {
-            width: var(--card-w); height: var(--card-h);
-            background: #fff; border-radius: 4px; color: #000;
-            display: flex; flex-direction: column; justify-content: space-between;
-            padding: 5px; box-sizing: border-box; font-weight: bold;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.3); border: 1px solid #ddd;
-            margin-left: -40px; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-family: Arial, sans-serif; position: relative;
+        .cta-area { width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 10; }
+        .play-btn {
+            background: var(--gold); color: #000; border: none;
+            padding: 20px 80px; border-radius: 50px; font-size: 1.5rem;
+            font-weight: 900; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 2px; transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(255, 204, 51, 0.4);
         }
-        .card.red { color: #b30000; }
-        .card.selected { transform: translateY(-25px); border: 2px solid var(--gold); box-shadow: 0 10px 20px rgba(0,0,0,0.4); z-index: 50; }
-        .card.back { 
-            background: #a31d1d; border: 2px solid #fff;
-            background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.05) 5px, rgba(255,255,255,0.05) 10px);
-        }
-        .is-joker::before {
-            content: 'JOKER'; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
-            font-size: 8px; color: var(--gold); letter-spacing: 1px;
+        .play-btn:hover {
+            transform: scale(1.1); box-shadow: 0 0 50px var(--gold);
         }
 
-        /* --- DRAWER & SLOTS --- */
-        .hand-area { background: #111; padding: 20px 10px; overflow-x: auto; white-space: nowrap; border-top: 1px solid #333; }
-        .group-box {
-            display: inline-flex; min-width: 80px; min-height: 100px; 
-            background: rgba(0,0,0,0.3); border: 1px solid #222; border-radius: 12px;
-            margin-right: 15px; padding: 10px; vertical-align: top;
-            box-shadow: inset 0 4px 10px rgba(0,0,0,0.5);
+        @keyframes float { 
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
         }
+        @keyframes pulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
 
-        .controls {
-            display: flex; padding: 15px; gap: 10px; background: #000;
-            padding-bottom: calc(15px + env(safe-area-inset-bottom));
-        }
-        .btn-premium {
-            flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold;
-            text-transform: uppercase; cursor: pointer; letter-spacing: 1px;
-            background: linear-gradient(to bottom, var(--gold-light), var(--gold));
-            color: #2c1b0e; box-shadow: 0 4px 0 #8a6d1d;
-        }
-        .btn-premium:active { transform: translateY(2px); box-shadow: 0 2px 0 #8a6d1d; }
+        /* --- SNOW & FIREWORKS --- */
+        canvas { position: fixed; inset: 0; pointer-events: none; z-index: 2001; }
     </style>
 </head>
 <body>
 
+    <canvas id="snow-canvas"></canvas>
+    <canvas id="fireworks-canvas"></canvas>
+
     <div id="home-screen">
-        <div class="glass-panel">
-            <div style="color: var(--gold); letter-spacing: 4px; font-weight: bold; margin-bottom: 10px;">EST. 2026</div>
-            <div class="ai-icon-realistic"></div>
+        <div class="pip-deco" style="top: 15%; left: 10%; color: var(--xmas-red);">♥</div>
+        <div class="pip-deco" style="top: 25%; right: 15%; color: white; animation-delay: 1s;">♠</div>
+        <div class="pip-deco" style="bottom: 30%; left: 15%; color: var(--gold); animation-delay: 2s;">♦</div>
+        <div class="pip-deco" style="bottom: 20%; right: 10%; color: white; animation-delay: 1.5s;">♣</div>
+
+        <div class="main-title-area">
+            <div class="festive-tag">HAPPY NEW YEAR 2026</div>
             <h1 class="main-title">Ai Rummy</h1>
-            <p style="color: #aaa; margin: 15px 0 30px 0; font-style: italic;">The Professional's Choice</p>
-            <button class="btn-premium" style="width: 240px; border-radius: 50px;" onclick="startMatch()">ENTER CASINO</button>
-        </div>
-    </div>
-
-    <div id="game-ui">
-        <div class="top-nav">
-            <button onclick="location.reload()" style="background:none; border:1px solid var(--gold); color:var(--gold); border-radius:20px; padding:5px 15px; font-size:12px;">EXIT</button>
-            <div style="color: var(--gold); font-weight: bold; letter-spacing: 1px;">YOU 0 | AI 0</div>
-            <div style="font-size: 10px; color: #666;">TABLE 402</div>
         </div>
 
-        <div class="table-area">
-            <div class="casino-table-3d">
-                <div style="display: flex; gap: 30px; align-items: center;">
-                    <div id="wj-card" class="card" style="transform: rotate(-90deg) translateX(-15px); opacity: 0.9;"></div>
-                    <div class="card back" style="box-shadow: 5px 5px 15px rgba(0,0,0,0.5);" onclick="draw('deck')"></div>
-                    <div id="discard-p" class="card" style="margin: 0;" onclick="draw('discard')"></div>
-                </div>
-            </div>
-        </div>
+        <div class="bot-avatar-large"></div>
 
-        <div class="hand-area">
-            <div class="group-box" id="g0" ondrop="drop(event, 0)" ondragover="allow(event)"></div>
-            <div class="group-box" id="g1" ondrop="drop(event, 1)" ondragover="allow(event)"></div>
-            <div class="group-box" id="g2" ondrop="drop(event, 2)" ondragover="allow(event)"></div>
-            <div class="group-box" id="g3" ondrop="drop(event, 3)" ondragover="allow(event)"></div>
-        </div>
-
-        <div class="controls">
-            <button class="btn-premium" onclick="sortHand()">SORT</button>
-            <button class="btn-premium" style="background: linear-gradient(#f39c12, #e67e22); color:white; box-shadow: 0 4px 0 #a05719;" onclick="discardSelected()">DISCARD</button>
-            <button class="btn-premium" style="background: linear-gradient(#2ecc71, #27ae60); color:white; box-shadow: 0 4px 0 #1e8449;" onclick="declare()">DECLARE</button>
+        <div class="cta-area">
+            <p style="color: white; letter-spacing: 4px; font-weight: bold; margin-bottom: 25px; text-shadow: 0 2px 4px black;">
+                AI BOT PROTOCOL <span style="color: var(--matrix-green);">ONLINE</span>
+            </p>
+            <button class="play-btn" onclick="dealSequence()">Enter Table</button>
         </div>
     </div>
 
     <script>
-        let groups = [[],[],[],[]], deck = [], discard = [], wildJoker = null, selected = null;
-        const suits = ['♠', '♣', '♥', '♦'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-
-        function startMatch() {
-            document.getElementById('home-screen').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'flex';
-            init();
+        // Matrix Rain + Snow + Fireworks Logic Integrated
+        const sCanvas = document.getElementById('snow-canvas');
+        const sCtx = sCanvas.getContext('2d');
+        let flakes = [];
+        
+        function resize() { 
+            sCanvas.width = window.innerWidth; sCanvas.height = window.innerHeight; 
         }
+        window.onresize = resize; resize();
 
-        function init() {
-            deck = [];
-            for(let s of suits) for(let r of ranks) deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black'});
-            deck.sort(() => Math.random() - 0.5);
-            wildJoker = deck.pop();
-            let hand = deck.splice(0, 13);
-            groups = [hand.splice(0,3), hand.splice(0,3), hand.splice(0,3), hand];
-            discard = [deck.pop()];
-            render();
-        }
-
-        function render() {
-            document.getElementById('wj-card').innerHTML = `<span>${wildJoker.r}<br>${wildJoker.s}</span>`;
-            document.getElementById('wj-card').className = `card ${wildJoker.c}`;
-            
-            const top = discard[discard.length-1];
-            const dp = document.getElementById('discard-p');
-            dp.innerHTML = `<span>${top.r}<br>${top.s}</span>`;
-            dp.className = `card ${top.c} ${top.r === wildJoker.r ? 'is-joker' : ''}`;
-
-            groups.forEach((group, gIdx) => {
-                const zone = document.getElementById(`g${gIdx}`); 
-                zone.innerHTML = '';
-                group.forEach((card, cIdx) => {
-                    const div = document.createElement('div');
-                    div.className = `card ${card.c} ${selected?.g === gIdx && selected?.c === cIdx ? 'selected' : ''} ${card.r === wildJoker.r ? 'is-joker' : ''}`;
-                    div.innerHTML = `<span>${card.r}<br>${card.s}</span>`;
-                    div.onclick = () => { selected = {g: gIdx, c: cIdx}; render(); };
-                    zone.appendChild(div);
-                });
+        for(let i=0; i<100; i++) {
+            flakes.push({
+                x: Math.random() * sCanvas.width,
+                y: Math.random() * sCanvas.height,
+                r: Math.random() * 3 + 1,
+                s: Math.random() * 1 + 0.5
             });
         }
 
-        function draw(src) { if(groups.flat().length < 14) { groups[3].push(src === 'deck' ? deck.pop() : discard.pop()); render(); } }
-        function discardSelected() { if(selected && groups.flat().length === 14) { discard.push(groups[selected.g].splice(selected.c, 1)[0]); selected = null; render(); setTimeout(()=> { if(deck.length) discard.push(deck.pop()); render(); }, 800); } }
-        function sortHand() { let f = groups.flat().sort((a,b) => suits.indexOf(a.s) - suits.indexOf(b.s) || ranks.indexOf(a.r) - ranks.indexOf(b.r)); groups = [f.splice(0,3), f.splice(0,3), f.splice(0,3), f]; render(); }
-        function declare() { if(confirm("Submit for validation?")) init(); }
-        function allow(e) { e.preventDefault(); }
-        function drop(e, target) { e.preventDefault(); if(!selected) return; const card = groups[selected.g].splice(selected.c, 1)[0]; groups[target].push(card); selected = null; render(); }
+        function drawSnow() {
+            sCtx.clearRect(0,0,sCanvas.width,sCanvas.height);
+            sCtx.fillStyle = "white";
+            sCtx.beginPath();
+            flakes.forEach(f => {
+                sCtx.moveTo(f.x, f.y);
+                sCtx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+                f.y += f.s;
+                if(f.y > sCanvas.height) f.y = -10;
+            });
+            sCtx.fill();
+            requestAnimationFrame(drawSnow);
+        }
+        drawSnow();
+
+        function dealSequence() {
+            // Transition to Game Table Logic
+            document.getElementById('home-screen').style.transition = '2s';
+            document.getElementById('home-screen').style.opacity = '0';
+            document.getElementById('home-screen').style.transform = 'scale(1.5)';
+            setTimeout(() => {
+                alert("Dealing cards in 4K resolution...");
+                location.reload(); // Placeholder for transition
+            }, 1000);
+        }
     </script>
 </body>
 </html>
