@@ -99,36 +99,112 @@ const firebaseConfig = {
   measurementId: "G-W7YJJ8JYT3"
 };
 
-    function startOnlineGame() {
-        document.getElementById('wait-overlay').style.display = 'none';
-        document.getElementById('lobby').style.display = 'none';
-        document.getElementById('game-view').style.display = 'flex';
-        
-        isMyTurn = (playerRole === 'host');
-        updateTurnUI();
+    firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let roomRef;
+let myHand = []; // Local hand for the active player
+
+// --- 2. JOINING & INITIALIZING ---
+async function connect(role) {
+    const roomID = document.getElementById('roomInput').value.toUpperCase();
+    if(!roomID) return alert("Enter Room Code");
+    
+    playerRole = role;
+    roomRef = db.ref('rooms/' + roomID);
+
+    if(role === 'host') {
+        // Host sets up the initial deck and game state
+        const initialDeck = createDeck();
+        const p1Hand = initialDeck.splice(0, 13);
+        const p2Hand = initialDeck.splice(0, 13);
+        const joker = initialDeck.pop();
+        const firstDiscard = initialDeck.pop();
+
+        await roomRef.set({
+            deck: initialDeck,
+            p1Hand: p1Hand,
+            p2Hand: p2Hand,
+            joker: joker,
+            discard: [firstDiscard],
+            turn: 'host', // Host starts
+            status: 'playing'
+        });
     }
 
-    function updateTurnUI() {
-        const status = document.getElementById('turn-status');
-        if(isMyTurn) {
-            status.innerText = "YOUR TURN";
-            status.style.color = "var(--gold)";
-        } else {
-            status.innerText = "OPPONENT'S TURN";
-            status.style.color = "#ff4757";
-        }
-    }
+    // Listen for changes from the other player
+    roomRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) syncGame(data);
+    });
 
-    /* --- DATA ARCHITECTURE FOR ONLINE SYNC --- */
-    // To ensure the game never desyncs, we use a single source of truth in Firebase:
-    /* rooms/{roomID}: {
-        gameState: "playing",
-        turn: "host",
-        discardPile: [card_objects],
-        joker: {rank, suit},
-        p1Hand: [card_objects],
-        p2Hand: [card_objects]
-    }
+    startOnlineGame();
+}
+
+// --- 3. THE SYNC ENGINE ---
+function syncGame(data) {
+    // Determine if it's my turn
+    isMyTurn = (data.turn === playerRole);
+    
+    // Update Global UI
+    document.getElementById('discard-pile').innerHTML = renderCard(data.discard[data.discard.length - 1]);
+    document.getElementById('joker-box').innerHTML = renderCard(data.joker);
+    
+    // Update local hand based on role
+    myHand = (playerRole === 'host') ? data.p1Hand : data.p2Hand;
+    
+    renderLocalHand();
+    updateTurnUI();
+}
+
+// --- 4. ACTION SYNCING ---
+async function handleDiscard(cardIndex) {
+    if(!isMyTurn) return;
+
+    const snapshot = await roomRef.once('value');
+    const data = snapshot.val();
+    
+    // 1. Move card from hand to discard
+    const cardToDiscard = myHand.splice(cardIndex, 1)[0];
+    data.discard.push(cardToDiscard);
+
+    // 2. Switch Turn
+    const nextTurn = (playerRole === 'host') ? 'join' : 'host';
+
+    // 3. Update Firebase
+    const updates = {
+        discard: data.discard,
+        turn: nextTurn
+    };
+    if(playerRole === 'host') updates.p1Hand = myHand;
+    else updates.p2Hand = myHand;
+
+    roomRef.update(updates);
+}
+
+async function drawFromDeck() {
+    if(!isMyTurn || myHand.length >= 14) return;
+
+    const snapshot = await roomRef.once('value');
+    const data = snapshot.val();
+    
+    const newCard = data.deck.pop();
+    myHand.push(newCard);
+
+    const updates = { deck: data.deck };
+    if(playerRole === 'host') updates.p1Hand = myHand;
+    else updates.p2Hand = myHand;
+
+    roomRef.update(updates);
+}
+
+// Helper: Create a standard deck
+function createDeck() {
+    const suits=['♥','♦','♣','♠'], ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+    let d = [];
+    suits.forEach(s => ranks.forEach(r => d.push({r, s, c:(s==='♥'||s==='♦')?'red':'black'})));
+    return d.sort(() => Math.random() - 0.5);
+}
     */
 </script>
 </body>
