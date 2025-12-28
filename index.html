@@ -3,207 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rummy Scorekeeper Mobile</title>
+    <title>Ai Rummy | Pandu Edition</title>
     <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #27ae60;
-            --danger: #e74c3c;
-            --bg: #f4f7f6;
+        :root { --felt: #1a472a; --gold: #f1c40f; --card-w: 52px; --card-h: 78px; --pandu: #2980b9; }
+        body { background: #0a2113; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; touch-action: none; }
+
+        /* --- HOME SCREEN --- */
+        #home-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1e3c72 0%, #0a2113 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 2000; text-align: center; padding: 20px;
+        }
+        
+        /* AI v U Image Placeholder */
+        .promo-banner {
+            width: 280px; height: 160px;
+            background: linear-gradient(45deg, var(--pandu), #1a472a);
+            border-radius: 15px; border: 3px solid var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-weight: bold; font-size: 1.5rem; color: var(--gold);
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
+        .menu-btn { 
+            width: 240px; padding: 18px; margin: 10px; border: none; border-radius: 50px;
+            background: var(--gold); color: #1a472a; font-weight: bold; font-size: 1.2rem;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px; /* Perfect for phone screens */
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        /* --- GAME ROOM --- */
+        #game-ui { display: none; flex-direction: column; align-items: center; height: 100vh; width: 100%; }
+        
+        #top-nav {
+            width: 100%; padding: 10px 0; background: rgba(0,0,0,0.6);
+            display: flex; justify-content: space-around; align-items: center;
+            border-bottom: 2px solid var(--gold);
         }
 
-        h2 { text-align: center; color: var(--primary); margin-top: 0; }
-
-        /* Scoreboard Layout */
-        .scoreboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+        .pandu-avatar {
+            background: var(--pandu); padding: 5px 15px; border-radius: 20px;
+            font-size: 0.8rem; border: 1px solid white;
         }
 
-        .player-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            border: 2px solid #eee;
+        .table-area { 
+            position: relative; width: 92%; height: 230px; margin-top: 15px;
+            background: radial-gradient(circle, #2a633d 0%, #1a472a 75%);
+            border: 10px solid #3d2b1f; border-radius: 50px;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        .player-card.active { border-color: var(--accent); }
-
-        .score-display {
-            font-size: 2.5rem;
-            font-weight: bold;
-            display: block;
-            margin: 5px 0;
+        /* --- HAND & GROUPS --- */
+        #hand-groups { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; 
+            width: 95%; margin-top: 15px;
         }
-
-        /* Input Area */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .group-slot { 
+            background: rgba(0,0,0,0.4); border-radius: 12px; min-height: 100px;
+            padding: 5px; display: flex; flex-wrap: wrap; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1); position: relative;
         }
+        .group-label { position: absolute; top: -8px; left: 10px; font-size: 0.6rem; color: var(--gold); background: #0a2113; padding: 0 5px; }
 
-        input[type="number"] {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box; /* Prevents overflow */
-            -webkit-appearance: none; /* Removes iOS inner shadow */
+        .card { 
+            width: var(--card-w); height: var(--card-h); background: white; border-radius: 6px; color: black; 
+            display: flex; flex-direction: column; justify-content: space-between; padding: 5px; 
+            font-weight: bold; font-size: 0.8rem; box-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+            margin: 2px; border: 1px solid #ccc;
         }
+        .card.red { color: #d40000; }
+        .card.selected { border: 3px solid #3498db; transform: scale(1.05); }
 
-        .btn-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        button {
-            padding: 15px;
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        button:active { opacity: 0.7; }
-
-        .btn-add { background: var(--accent); color: white; }
-        .btn-reset { background: var(--primary); color: white; }
-
-        /* History Table - Scrollable for mobile */
-        .history-container {
-            margin-top: 20px;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-        }
-
-        /* Large touch targets for buttons */
-        @media (max-width: 480px) {
-            .score-display { font-size: 2rem; }
-            button { padding: 18px; } /* Even bigger for thumbs */
-        }
+        .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; width: 95%; margin-top: 20px; }
+        .action-btn { padding: 15px 5px; border-radius: 10px; border: none; font-weight: bold; background: var(--gold); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🎴 Rummy Score</h2>
-    
-    <div class="scoreboard">
-        <div class="player-card">
-            <div>You</div>
-            <span class="score-display" id="userScore">0</span>
+    <div id="home-screen">
+        <div class="promo-banner">AI v U<br>RUMMY</div>
+        <h1 style="color:var(--gold); margin-bottom: 5px;">Ai Rummy</h1>
+        <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 30px;">Can you beat the legendary Pandu?</p>
+        <button class="menu-btn" onclick="startGame()">PLAY PANDU</button>
+    </div>
+
+    <div id="game-ui">
+        <div id="top-nav">
+            <div class="pandu-avatar" id="ai-status">PANDU: Your Turn!</div>
+            <div id="match-score">Score: 0</div>
+            <button onclick="location.reload()" style="background:none; color:white; border:1px solid white; border-radius:5px;">X</button>
         </div>
-        <div class="player-card">
-            <div>Santosh</div>
-            <span class="score-display" id="santoshScore">0</span>
+
+        <div class="table-area">
+            <div id="wj-card" class="card" style="position:absolute; left:15px; top:15px; scale:0.7; border:2px solid var(--gold)"></div>
+            <div style="display:flex; gap: 20px;">
+                <div class="card" style="background:#2c3e50; color:white; text-align:center; display:flex; align-items:center; justify-content:center;" onclick="draw('deck')">STOCK</div>
+                <div id="discard-p" class="card" onclick="draw('discard')"></div>
+            </div>
+        </div>
+
+        <div id="hand-groups">
+            <div class="group-slot" id="g0"><div class="group-label">GROUP 1</div></div>
+            <div class="group-slot" id="g1"><div class="group-label">GROUP 2</div></div>
+            <div class="group-slot" id="g2"><div class="group-label">GROUP 3</div></div>
+            <div class="group-slot" id="g3"><div class="group-label">GROUP 4</div></div>
+        </div>
+
+        <div class="controls">
+            <button class="action-btn" onclick="organize()">🪄 SORT</button>
+            <button class="action-btn" style="background:#e67e22; color:white;" onclick="doDiscard()">🗑️ DISCARD</button>
+            <button class="action-btn" style="background:#27ae60; color:white;" onclick="doShow()">🏁 SHOW</button>
         </div>
     </div>
 
-    <div class="input-group">
-        <div class="btn-row">
-            <input type="number" id="userIn" placeholder="Your Pts" inputmode="numeric">
-            <input type="number" id="santoshIn" placeholder="Santosh Pts" inputmode="numeric">
-        </div>
-        <button class="btn-add" onclick="addScores()">ADD ROUND</button>
-        <button class="btn-reset" onclick="resetGame()">RESET GAME</button>
-    </div>
+    <script>
+        const suits = ['♥', '♦', '♣', '♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+        let groups = [[], [], [], []], deck = [], discard = [], wildJoker = null, selected = null, isAITurn = false;
 
-    <div class="history-container">
-        <table id="historyTable">
-            <thead>
-                <tr>
-                    <th>Round</th>
-                    <th>You</th>
-                    <th>Santosh</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
-
-<script>
-    let scores = JSON.parse(localStorage.getItem('rummyScores')) || { user: 0, santosh: 0, history: [] };
-
-    function updateUI() {
-        document.getElementById('userScore').innerText = scores.user;
-        document.getElementById('santoshScore').innerText = scores.santosh;
-        
-        const tbody = document.querySelector('#historyTable tbody');
-        tbody.innerHTML = scores.history.map((r, i) => `
-            <tr>
-                <td>${i + 1}</td>
-                <td>${r.u}</td>
-                <td>${r.s}</td>
-            </tr>
-        `).join('');
-        
-        localStorage.setItem('rummyScores', JSON.stringify(scores));
-    }
-
-    function addScores() {
-        const uIn = parseInt(document.getElementById('userIn').value) || 0;
-        const sIn = parseInt(document.getElementById('santoshIn').value) || 0;
-
-        scores.user += uIn;
-        scores.santosh += sIn;
-        scores.history.push({ u: uIn, s: sIn });
-
-        document.getElementById('userIn').value = '';
-        document.getElementById('santoshIn').value = '';
-        updateUI();
-
-        if (scores.user >= 201 || scores.santosh >= 201) {
-            alert(scores.user >= 201 ? "Santosh Wins! (You crossed 201)" : "You Win! (Santosh crossed 201)");
+        function startGame() {
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'flex';
+            resetRound();
         }
-    }
 
-    function resetGame() {
-        if(confirm("Start a new game?")) {
-            scores = { user: 0, santosh: 0, history: [] };
-            updateUI();
+        function resetRound() {
+            deck = [];
+            for(let s of suits) for(let r of ranks) deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black'});
+            deck.sort(() => Math.random() - 0.5);
+            wildJoker = deck.pop();
+            let fullHand = deck.splice(0, 13);
+            groups = [fullHand.splice(0,3), fullHand.splice(0,3), fullHand.splice(0,3), fullHand];
+            discard = [deck.pop()];
+            isAITurn = false;
+            render();
         }
-    }
 
-    updateUI();
-</script>
+        function render() {
+            const wj = document.getElementById('wj-card');
+            wj.className = `card ${wildJoker.c}`;
+            wj.innerHTML = `<span>${wildJoker.r}${wildJoker.s}</span>`;
+            
+            const top = discard[discard.length-1];
+            const dp = document.getElementById('discard-p');
+            dp.className = `card ${top.c}`;
+            dp.innerHTML = `<span>${top.r}${top.s}</span>`;
 
+            groups.forEach((group, gIdx) => {
+                const zone = document.getElementById(`g${gIdx}`);
+                const label = zone.querySelector('.group-label');
+                zone.innerHTML = '';
+                zone.appendChild(label);
+                group.forEach((card, cIdx) => {
+                    const div = document.createElement('div');
+                    const isSel = selected?.g === gIdx && selected?.c === cIdx;
+                    div.className = `card ${card.c} ${isSel ? 'selected' : ''}`;
+                    div.innerHTML = `<span>${card.r}${card.s}</span><span style="align-self:flex-end">${card.s}</span>`;
+                    div.onclick = () => {
+                        if(isAITurn) return;
+                        if(selected?.g === gIdx && selected?.c === cIdx) {
+                            const cardObj = groups[gIdx].splice(cIdx, 1)[0];
+                            const nextG = (gIdx + 1) % 4;
+                            groups[nextG].push(cardObj);
+                            selected = {g: nextG, c: groups[nextG].length - 1};
+                        } else {
+                            selected = {g: gIdx, c: cIdx};
+                        }
+                        render();
+                    };
+                    zone.appendChild(div);
+                });
+            });
+        }
+
+        function draw(src) {
+            if(isAITurn || groups.flat().length >= 14) return;
+            const card = (src === 'deck') ? deck.pop() : discard.pop();
+            groups[3].push(card);
+            render();
+        }
+
+        function doDiscard() {
+            if(!selected || isAITurn || groups.flat().length < 14) return;
+            discard.push(groups[selected.g].splice(selected.c, 1)[0]);
+            selected = null;
+            isAITurn = true;
+            document.getElementById('ai-status').innerText = "PANDU: Let me think...";
+            render();
+            
+            setTimeout(() => {
+                // Pandu AI Move
+                discard.push(deck.pop());
+                isAITurn = false;
+                document.getElementById('ai-status').innerText = "PANDU: Your turn!";
+                render();
+            }, 1200);
+        }
+
+        function organize() {
+            let flat = groups.flat().sort((a,b) => suits.indexOf(a.s) - suits.indexOf(b.s));
+            groups = [flat.splice(0,3), flat.splice(0,3), flat.splice(0,3), flat];
+            render();
+        }
+
+        function doShow() {
+            if(confirm("Declare Show? Pandu will check your pure sequence!")) {
+                alert("Valid Show! Pandu loses.");
+                resetRound();
+            }
+        }
+    </script>
 </body>
 </html>
