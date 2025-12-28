@@ -3,35 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ai Rummy | Grand Casino Royale</title>
+    <title>Ai Rummy | Grand Casino</title>
     <style>
         :root { 
             --gold-grad: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
             --gold: #ffd700; --neon: #00f3ff; --xmas-red: #d42426; 
-            /* Luxury Emerald Felt Texture using CSS Gradients */
             --deep-felt: radial-gradient(circle at 50% 40%, #165b33 0%, #050a07 100%);
             --card-w: 13.5vw; --card-h: 20vw;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; touch-action: manipulation; }
         
         body { 
-            background: #000; color: #fff; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background: #000; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; 
             overflow: hidden; height: 100dvh; width: 100vw; 
         }
 
-        #snow-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0.6; }
-
-        /* --- HOME PAGE (Stable Assets) --- */
+        /* --- STABLE CASINO BACKGROUND --- */
         #home-page {
             position: fixed; inset: 0; z-index: 5000;
             background: var(--deep-felt);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        /* Casino Pattern Background */
+
+        /* Luxury Diamond Wallpaper Pattern (Permanent CSS) */
         #home-page::before {
             content: ""; position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 30L15 15l15-15 15 15-15 15zm0 0L15 45l15 15 15-15-15-15z' fill='%23ffd700' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
-            opacity: 0.5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 30L15 15l15-15 15 15-15 15zm0 0L15 45l15 15 15-15-15-15z' fill='%23ffd700' fill-opacity='0.04' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.6;
         }
 
         .casino-frame {
@@ -41,81 +39,32 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.9), 0 0 15px rgba(255,215,0,0.2);
         }
 
-        /* --- GAME VIEW --- */
+        /* --- GAME UI --- */
         #game-view { display: none; flex-direction: column; height: 100dvh; width: 100vw; }
-        
-        .header { 
-            height: 50px; background: #000; display: flex; align-items: center; 
-            padding: 0 15px; border-bottom: 2px solid var(--gold); z-index: 10;
-        }
+        .header { height: 50px; background: #000; display: flex; align-items: center; padding: 0 15px; border-bottom: 2px solid var(--gold); z-index: 10; }
         .header-item { flex: 1; font-size: 0.75rem; font-weight: bold; text-align: center; color: var(--gold); }
+        .table-area { flex: 1; background: var(--deep-felt); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 1; }
+        .felt-rim { width: 92%; height: 125px; border: 5px solid #2b1b0d; border-radius: 65px; display: flex; justify-content: center; align-items: center; gap: 15px; box-shadow: inset 0 0 50px #000; background: #163d26; }
 
-        .table-area { 
-            flex: 1; background: var(--deep-felt); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; z-index: 1;
-        }
-        
-        .felt-rim { 
-            width: 92%; height: 125px; border: 5px solid #2b1b0d; border-radius: 65px; 
-            display: flex; justify-content: center; align-items: center; gap: 15px;
-            box-shadow: inset 0 0 50px #000; background: #163d26;
-        }
-
-        .joker-ui { 
-            width: 36px; height: 52px; border: 1.5px solid var(--gold); border-radius: 4px; 
-            display: flex; align-items: center; justify-content: center; font-size: 0.5rem; 
-            background: #000; font-weight: bold; color: var(--gold);
-        }
-
-        /* --- GRID --- */
-        .grid-mobile { 
-            height: 42vh; background: #050a07; display: grid; 
-            grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; 
-            gap: 6px; padding: 10px; z-index: 10;
-        }
-        .slot { 
-            background: rgba(255, 215, 0, 0.04); border: 1px solid rgba(255, 215, 0, 0.1); 
-            border-radius: 10px; padding: 4px; display: flex; flex-wrap: wrap; 
-            align-content: flex-start; gap: 2px; position: relative;
-        }
-        .slot.valid { border-color: #2ecc71; background: rgba(46, 213, 115, 0.1); }
-        .slot::after { content: attr(data-label); position: absolute; bottom: 3px; right: 6px; font-size: 0.45rem; color: var(--gold); opacity: 0.3; }
-
-        /* --- CARDS --- */
-        .card { 
-            width: var(--card-w); height: var(--card-h); max-width: 55px; max-height: 80px;
-            background: #fff; color: #000; border-radius: 4px; display: flex; flex-direction: column; 
-            justify-content: space-between; padding: 4px; font-weight: bold; font-size: 0.8rem; 
-            border: 1px solid #999; box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-            background-image: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-        }
+        /* --- CARDS & GRID --- */
+        .grid-mobile { height: 42vh; background: #050a07; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 10px; z-index: 10; }
+        .slot { background: rgba(255, 215, 0, 0.04); border: 1px solid rgba(255, 215, 0, 0.1); border-radius: 10px; padding: 4px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 2px; position: relative; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: 55px; max-height: 80px; background: #fff; color: #000; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; padding: 4px; font-weight: bold; font-size: 0.8rem; border: 1px solid #999; box-shadow: 2px 2px 6px rgba(0,0,0,0.5); background-image: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%); }
         .card.red { color: var(--xmas-red); }
         .card.selected { transform: translateY(-12px); border: 2.5px solid var(--neon); box-shadow: 0 0 15px var(--neon); }
-        .card-back { 
-            background: #0a2e1a; border: 1.5px solid var(--gold); 
-            background-image: radial-gradient(var(--gold) 0.5px, transparent 0.5px); 
-            background-size: 5px 5px; 
-        }
+        .card-back { background: #0a2e1a; border: 1.5px solid var(--gold); background-image: radial-gradient(var(--gold) 0.5px, transparent 0.5px); background-size: 5px 5px; }
 
-        /* --- CONTROLS --- */
-        .controls { 
-            height: 75px; background: #000; display: grid; 
-            grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 8px;
-            border-top: 1px solid var(--gold); z-index: 10;
-        }
+        .controls { height: 75px; background: #000; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 8px; border-top: 1px solid var(--gold); z-index: 10; }
         .btn-luxury { border: 1px solid var(--gold); border-radius: 6px; font-weight: 800; font-size: 0.6rem; cursor: pointer; color: var(--gold); background: #111; text-transform: uppercase;}
         .btn-gold-fill { background: var(--gold-grad); color: #000; border: none; font-weight: 900; }
     </style>
 </head>
 <body>
 
-    <canvas id="snow-canvas"></canvas>
-
     <div id="home-page">
         <div class="casino-frame">
             <h1 style="color:var(--gold); font-size: 2.8rem; margin:0;">Ai Rummy</h1>
-            <p style="letter-spacing: 4px; font-size: 0.65rem; margin-bottom: 25px; opacity: 0.8;">REVEAL THE JOKER</p>
+            <p style="letter-spacing: 4px; font-size: 0.65rem; margin-bottom: 25px; opacity: 0.8;">PREMIUM CASINO LOBBY</p>
             <div style="margin-bottom: 30px;">
                 <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Pandu&backgroundColor=b8860b" width="80" style="border: 2px solid var(--gold); border-radius: 50%; background: #000; padding: 3px;">
                 <p style="color:var(--gold); margin-top: 10px; font-size: 0.8rem; font-weight:bold;">DEALER: PANDU AI</p>
@@ -135,7 +84,7 @@
         <div class="table-area">
             <div id="ai-hand-ui" style="display:flex; margin-bottom: 10px;"></div>
             <div class="felt-rim">
-                <div id="joker-ui" class="joker-ui">JOKER</div>
+                <div id="joker-ui" style="width:36px; height:52px; border:1px solid var(--gold); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:0.5rem; background:#000; font-weight:bold; color:var(--gold);">JOKER</div>
                 <div style="display:flex; gap: 12px;">
                     <div class="card card-back" onclick="draw('deck')"></div>
                     <div id="discard-pile" class="card" onclick="draw('discard')"></div>
@@ -145,9 +94,9 @@
 
         <div class="grid-mobile">
             <div class="slot" id="g0" data-label="PURE SEQ" onclick="moveToSlot(0)"></div>
-            <div class="slot" id="g1" data-label="GROUP 2" onclick="moveToSlot(1)"></div>
-            <div class="slot" id="g2" data-label="GROUP 3" onclick="moveToSlot(2)"></div>
-            <div class="slot" id="g3" data-label="GROUP 4" onclick="moveToSlot(3)"></div>
+            <div class="slot" id="g1" data-label="G2" onclick="moveToSlot(1)"></div>
+            <div class="slot" id="g2" data-label="G3" onclick="moveToSlot(2)"></div>
+            <div class="slot" id="g3" data-label="G4" onclick="moveToSlot(3)"></div>
         </div>
 
         <div class="controls">
@@ -159,22 +108,6 @@
     </div>
 
 <script>
-    /* Final Visuals Check */
-    const canvas = document.getElementById('snow-canvas');
-    const ctx = canvas.getContext('2d');
-    let W, H, flakes = [];
-    function initVisuals() {
-        W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight;
-        flakes = Array(50).fill().map(() => ({ x: Math.random()*W, y: Math.random()*H, r: Math.random()*2+1 }));
-    }
-    function loop() {
-        ctx.clearRect(0,0,W,H); ctx.fillStyle = "#fff"; ctx.beginPath();
-        flakes.forEach(f => { ctx.moveTo(f.x, f.y); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); f.y += 0.4; if(f.y>H) f.y=-5; });
-        ctx.fill(); requestAnimationFrame(loop);
-    }
-    window.addEventListener('resize', initVisuals); initVisuals(); loop();
-
-    /* Game Engine Check */
     const suits = ['♥', '♦', '♣', '♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
     let groups = [[], [], [], []], aiHand = [], deck = [], discard = [], wildJoker = null, selected = [];
     let pScore = 0, sScore = 0, turnCount = 0, jokerRevealed = false, aiLocked = false;
@@ -204,7 +137,6 @@
         document.getElementById('p-score').innerText = pScore;
         document.getElementById('s-score').innerText = sScore;
         document.getElementById('ai-hand-ui').innerHTML = Array(13).fill('<div class="card card-back" style="width:16px; height:26px; margin-right:-8px;"></div>').join('');
-        
         const top = discard[discard.length-1];
         const dp = document.getElementById('discard-pile');
         dp.className = `card ${top.c}`;
@@ -216,13 +148,12 @@
             const pure = i===0 && checkPure(group);
             slot.className = `slot ${pure ? 'valid' : ''}`;
             if(pure && !jokerRevealed) revealJoker();
-            
             group.forEach(card => {
                 const isSel = selected.some(sc => sc.id === card.id);
                 const div = document.createElement('div');
                 div.className = `card ${card.c} ${isSel ? 'selected' : ''}`;
                 div.innerHTML = `<span>${card.r}${card.s}</span><span>${card.s}</span>`;
-                div.onclick = (e) => { e.stopPropagation(); if(!aiLocked) toggleCard(card); };
+                div.onclick = (e) => { if(!aiLocked) toggleCard(card); };
                 slot.appendChild(div);
             });
         });
