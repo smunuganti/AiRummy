@@ -3,212 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A23 Rummy | Player vs Pandu</title>
+    <title>Ai Rummy Mobile</title>
     <style>
         :root { 
-            --a23-blue: #0a3d62; --a23-green: #1e7a43; --a23-accent: #f39c12;
-            --card-w: 52px; --card-h: 76px; 
+            --gold: #f1c40f; --neon: #00f3ff; 
+            --card-w: 11vw; --card-h: 16vw; /* Responsive card sizes based on viewport */
+            --max-card-w: 55px; --max-card-h: 80px;
         }
-        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; touch-action: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            background: #050a07; color: #fff; font-family: -apple-system, sans-serif; 
+            margin: 0; overflow: hidden; height: 100vh; width: 100vw;
+            display: flex; flex-direction: column;
+        }
 
-        /* --- HEADER & SCORE --- */
-        .header { height: 45px; background: #111; display: flex; justify-content: space-around; align-items: center; border-bottom: 2px solid var(--a23-accent); z-index: 10; position: relative; }
-        
-        /* --- GAME TABLE AREA --- */
+        /* --- MOBILE HEADER --- */
+        .header { 
+            height: 40px; background: #000; display: flex; justify-content: space-around; 
+            align-items: center; border-bottom: 1.5px solid var(--gold); font-size: 0.75rem;
+        }
+
+        /* --- TABLE AREA (TOP HALF) --- */
         .table-area { 
-            height: 42vh; background: radial-gradient(circle, var(--a23-green) 0%, #062c16 100%);
-            perspective: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 0;
+            flex: 1; background: radial-gradient(circle, #1a4a2e 0%, #000 100%); 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            position: relative; padding: 5px;
         }
 
-        /* Opponent Area */
-        .opponent-area { display: flex; flex-direction: column; align-items: center; z-index: 5; }
-        .ai-avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--a23-accent); background: #222; }
-        .ai-hand-blind { display: flex; justify-content: center; width: 150px; height: 40px; margin-top: -15px; }
+        .ai-zone { margin-bottom: 5px; text-align: center; }
+        .ai-cards { display: flex; justify-content: center; height: 35px; }
         .card-back { 
-            width: 30px; height: 45px; background: var(--a23-blue); border: 1px solid #fff; border-radius: 3px; 
-            margin-right: -20px; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px);
+            width: 20px; height: 30px; background: #0a3d62; border: 1px solid #fff; 
+            border-radius: 2px; margin-right: -12px; box-shadow: 1px 1px 3px #000;
         }
 
-        /* Table Surface */
-        .felt-rim { width: 85%; height: 160px; border: 8px solid #2c1a0b; border-radius: 100px; transform: rotateX(25deg); box-shadow: inset 0 0 50px #000; display: flex; justify-content: center; align-items: center; gap: 25px; position: relative; }
-        .joker-box { position: absolute; left: 15%; top: 35%; width: var(--card-w); height: var(--card-h); border: 2px solid var(--a23-accent); border-radius: 5px; background: #111; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; transform: rotate(-10deg); transition: 0.5s; }
-        .joker-box.revealed { background: #fff; color: #000; transform: scale(1.1) rotate(0deg); z-index: 20; }
+        .felt { 
+            width: 90%; height: 110px; border: 6px solid #2b1b0d; border-radius: 60px; 
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+            box-shadow: inset 0 0 30px #000; position: relative;
+        }
 
-        /* --- PLAYER HAND SECTION --- */
-        .hand-section { height: 280px; background: #0a2e1a; padding: 10px; border-top: 3px solid var(--a23-accent); }
-        #group-container { display: flex; gap: 10px; height: 110px; overflow-x: auto; padding-top: 5px; }
-        .slot { background: rgba(0,0,0,0.4); border-radius: 8px; min-width: 70px; padding: 8px 5px; display: flex; position: relative; }
-        .slot-num { position: absolute; top: -5px; left: 5px; font-size: 0.5rem; color: var(--a23-accent); }
+        .joker-ui { 
+            width: 35px; height: 50px; border: 1.5px solid #444; border-radius: 4px; 
+            background: #111; font-size: 0.5rem; display: flex; align-items: center; 
+            justify-content: center; transition: 0.4s;
+        }
+        .joker-ui.revealed { background: #fff; color: #000; border-color: var(--gold); }
 
+        /* --- GRID AREA (BOTTOM HALF) --- */
+        .grid-container { 
+            height: 45vh; background: #0a140d; display: grid; 
+            grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+            gap: 6px; padding: 6px; border-top: 2px solid var(--neon);
+        }
+        .slot { 
+            background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(0, 243, 255, 0.2);
+            border-radius: 6px; padding: 3px; display: flex; flex-wrap: wrap; 
+            align-content: flex-start; gap: 2px; position: relative; overflow: hidden;
+        }
+        .slot::after { content: attr(data-label); position: absolute; bottom: 2px; right: 4px; font-size: 0.5rem; color: var(--neon); opacity: 0.4; }
+        .slot.valid { border-color: #2ed573; background: rgba(46, 213, 115, 0.1); }
+
+        /* --- MOBILE CARDS --- */
         .card { 
-            width: var(--card-w); height: var(--card-h); background: #fff; color: #000; border-radius: 4px;
-            display: flex; flex-direction: column; justify-content: space-between; padding: 4px;
-            font-weight: bold; font-size: 0.8rem; margin-right: -32px; border: 1px solid #ccc;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.3); transition: 0.2s;
+            width: var(--card-w); height: var(--card-h); 
+            max-width: var(--max-card-w); max-height: var(--max-card-h);
+            background: #fff; color: #000; border-radius: 3px;
+            display: flex; flex-direction: column; justify-content: space-between; padding: 2px;
+            font-weight: bold; font-size: 0.7rem; border: 1px solid #ccc;
         }
-        .card:last-child { margin-right: 0; }
         .card.red { color: #d32f2f; }
-        .card.selected { transform: translateY(-25px); z-index: 100; border: 2px solid #00f3ff; box-shadow: 0 0 10px #00f3ff; }
+        .card.selected { transform: translateY(-4px); border: 2px solid var(--neon); box-shadow: 0 0 8px var(--neon); }
 
-        .controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
-        .btn { padding: 12px 0; border: none; border-radius: 5px; font-weight: bold; font-size: 0.7rem; cursor: pointer; text-transform: uppercase; }
-        .btn-g { background: #333; color: #fff; }
-        .btn-o { background: var(--a23-accent); color: #fff; }
+        /* --- ACTION BAR --- */
+        .controls { 
+            height: 60px; background: #000; display: grid; 
+            grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 8px;
+        }
+        .btn { 
+            border: none; border-radius: 4px; font-weight: bold; font-size: 0.65rem; 
+            cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center;
+        }
+        .btn-sec { background: #222; color: #fff; }
+        .btn-pri { background: var(--gold); color: #000; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div>YOU: <span id="p-score">0</span></div>
-        <div id="ai-status" style="color:var(--a23-accent); font-weight: bold;">PANDU'S TURN</div>
-        <div>PANDU: <span id="s-score">0</span></div>
+        <div>YOU: <b id="p-score">0</b></div>
+        <div id="status" style="color:var(--gold); font-weight:bold; font-size:0.6rem">YOUR TURN</div>
+        <div>PANDU: <b id="s-score">0</b></div>
     </div>
 
     <div class="table-area">
-        <div class="opponent-area">
-            <img class="ai-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Pandu">
-            <div style="font-size: 0.6rem; margin-top: 2px;">PANDU (AI)</div>
-            <div class="ai-hand-blind" id="ai-cards"></div>
+        <div class="ai-zone">
+            <div class="ai-cards" id="opp-cards"></div>
         </div>
-
-        <div class="felt-rim">
-            <div id="joker-ui" class="joker-box">CLOSED</div>
-            <div style="display:flex; gap: 20px; transform: rotateX(-25deg);">
-                <div class="card" style="background:#0a3d62; color:#fff; border:1px solid #fff; display:flex; align-items:center; justify-content:center; margin:0;" onclick="draw('deck')">STOCK</div>
-                <div id="open-pile" class="card" style="margin:0;" onclick="draw('discard')"></div>
+        <div class="felt">
+            <div id="joker-ui" class="joker-ui">LOCKED</div>
+            <div style="display:flex; gap: 10px;">
+                <div class="card" style="background:#0a3d62; color:#fff; display:flex; align-items:center; justify-content:center;" onclick="draw('deck')">STOCK</div>
+                <div id="open-pile" class="card" onclick="draw('discard')"></div>
             </div>
         </div>
     </div>
 
-    <div class="hand-section">
-        <div id="group-container">
-            <div class="slot" id="s0" onclick="moveToSlot(0)"><div class="slot-num">G1</div></div>
-            <div class="slot" id="s1" onclick="moveToSlot(1)"><div class="slot-num">G2</div></div>
-            <div class="slot" id="s2" onclick="moveToSlot(2)"><div class="slot-num">G3</div></div>
-            <div class="slot" id="s3" onclick="moveToSlot(3)"><div class="slot-num">G4</div></div>
-        </div>
+    <div class="grid-container">
+        <div class="slot" id="g0" data-label="PURE SEQ" onclick="moveSelectedTo(0)"></div>
+        <div class="slot" id="g1" data-label="G2" onclick="moveSelectedTo(1)"></div>
+        <div class="slot" id="g2" data-label="G3" onclick="moveSelectedTo(2)"></div>
+        <div class="slot" id="g3" data-label="G4" onclick="moveSelectedTo(3)"></div>
+    </div>
 
-        <div class="controls">
-            <button class="btn btn-g" onclick="autoGroup()">Auto Sort</button>
-            <button class="btn btn-g" onclick="doDrop()" style="color:red;">Drop</button>
-            <button class="btn btn-o" onclick="doDiscard()">Discard</button>
-            <button class="btn btn-o" style="background:#27ae60;" onclick="doShow()">Declare</button>
-        </div>
+    <div class="controls">
+        <button class="btn btn-sec" onclick="autoSort()">SORT</button>
+        <button class="btn btn-sec" style="color:#ff4757" onclick="doDrop()">DROP</button>
+        <button class="btn btn-pri" onclick="doDiscard()">DISCARD</button>
+        <button class="btn btn-pri" style="background:#2ed573" onclick="doShow()">SHOW</button>
     </div>
 
 <script>
     const suits = ['♥', '♦', '♣', '♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    let groups = [[], [], [], []], deck = [], discard = [], wildJoker = null, selectedCards = [];
-    let pScore = 0, sScore = 0, turnCount = 0, isAITurn = false;
+    let groups = [[], [], [], []], aiHand = [], deck = [], discard = [], wildJoker = null, selected = [];
+    let pScore = 0, sScore = 0, turnCount = 0, jokerRevealed = false, isAITurn = false;
 
     function init() {
         deck = [];
         for(let i=0; i<2; i++) for(let s of suits) for(let r of ranks) deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black', id: Math.random()});
         deck.sort(() => Math.random() - 0.5);
         wildJoker = deck.pop();
-        let fullHand = deck.splice(0, 13);
-        groups = [fullHand.splice(0,4), fullHand.splice(0,3), fullHand.splice(0,3), fullHand];
+        aiHand = deck.splice(0, 13);
+        let hand = deck.splice(0, 13);
+        groups = [[], hand.splice(0,4), hand.splice(0,4), hand];
         discard = [deck.pop()];
-        turnCount = 0; selectedCards = []; isAITurn = false;
+        turnCount = 0; selected = []; jokerRevealed = false; isAITurn = false;
         document.getElementById('joker-ui').classList.remove('revealed');
-        document.getElementById('joker-ui').innerText = "CLOSED";
+        document.getElementById('joker-ui').innerText = "LOCKED";
         render();
     }
 
-    function render() {
+    function render(revealAI = false) {
         document.getElementById('p-score').innerText = pScore;
         document.getElementById('s-score').innerText = sScore;
-        document.getElementById('ai-status').innerText = isAITurn ? "PANDU IS THINKING..." : "YOUR TURN";
+        document.getElementById('status').innerText = isAITurn ? "AI THINKING..." : "YOUR TURN";
         
-        // Render Pandu's blind cards
-        const aiHand = document.getElementById('ai-cards');
-        aiHand.innerHTML = Array(13).fill('<div class="card-back"></div>').join('');
+        const aiContainer = document.getElementById('opp-cards');
+        aiContainer.innerHTML = '';
+        if(revealAI) {
+            aiHand.forEach(c => {
+                const div = document.createElement('div');
+                div.className = `card ${c.c}`;
+                div.style.width = '15px'; div.style.height = '25px'; div.style.fontSize = '0.4rem'; div.style.marginRight = '-5px';
+                div.innerHTML = `<span>${c.r}${c.s}</span>`;
+                aiContainer.appendChild(div);
+            });
+        } else {
+            aiContainer.innerHTML = Array(aiHand.length).fill('<div class="card-back"></div>').join('');
+        }
 
         const top = discard[discard.length-1];
         const op = document.getElementById('open-pile');
         op.className = `card ${top.c}`;
         op.innerHTML = `<span>${top.r}${top.s}</span><span>${top.s}</span>`;
 
-        groups.forEach((group, gIdx) => {
-            const slot = document.getElementById(`s${gIdx}`);
-            const label = slot.querySelector('.slot-num');
-            slot.innerHTML = ''; slot.appendChild(label);
-            group.forEach((card) => {
-                const isSelected = selectedCards.some(sc => sc.id === card.id);
+        groups.forEach((group, i) => {
+            const slot = document.getElementById(`g${i}`);
+            slot.innerHTML = '';
+            slot.className = `slot ${i===0 && isPure(group) ? 'valid' : ''}`;
+            group.forEach(card => {
+                const isSel = selected.some(sc => sc.id === card.id);
                 const div = document.createElement('div');
-                div.className = `card ${card.c} ${isSelected ? 'selected' : ''}`;
+                div.className = `card ${card.c} ${isSel ? 'selected' : ''}`;
                 div.innerHTML = `<span>${card.r}${card.s}</span><span>${card.s}</span>`;
-                div.onclick = (e) => { e.stopPropagation(); toggleSelection(card); };
+                div.onclick = (e) => { e.stopPropagation(); toggle(card); };
                 slot.appendChild(div);
             });
         });
+        if (!jokerRevealed && isPure(groups[0])) revealJoker();
     }
 
-    function toggleSelection(card) {
+    function isPure(g) {
+        if (g.length < 3) return false;
+        if (!g.every(c => c.s === g[0].s)) return false;
+        const rIdx = g.map(c => ranks.indexOf(c.r)).sort((a,b) => a-b);
+        for(let i=0; i<rIdx.length-1; i++) if(rIdx[i+1] !== rIdx[i]+1) return false;
+        return true;
+    }
+
+    function revealJoker() {
+        jokerRevealed = true;
+        const ui = document.getElementById('joker-ui');
+        ui.classList.add('revealed');
+        ui.innerHTML = `<span>${wildJoker.r}${wildJoker.s}</span>`;
+    }
+
+    function toggle(card) {
         if(isAITurn) return;
-        const idx = selectedCards.findIndex(sc => sc.id === card.id);
-        if (idx > -1) selectedCards.splice(idx, 1);
-        else selectedCards.push(card);
+        const i = selected.findIndex(sc => sc.id === card.id);
+        if (i > -1) selected.splice(i, 1); else selected.push(card);
         render();
     }
 
-    function moveToSlot(targetIdx) {
-        if (selectedCards.length === 0 || isAITurn) return;
-        groups.forEach(g => {
-            selectedCards.forEach(sc => {
-                const i = g.findIndex(c => c.id === sc.id);
-                if (i > -1) g.splice(i, 1);
-            });
-        });
-        groups[targetIdx].push(...selectedCards);
-        selectedCards = [];
-        render();
+    function moveSelectedTo(idx) {
+        if (!selected.length) return;
+        groups.forEach(g => selected.forEach(sc => { const i = g.findIndex(c => c.id === sc.id); if(i > -1) g.splice(i,1); }));
+        groups[idx].push(...selected);
+        selected = []; render();
     }
 
     function draw(src) {
         if (isAITurn || groups.flat().length >= 14) return;
-        groups[0].push(src === 'deck' ? deck.pop() : discard.pop());
-        turnCount++; render();
-    }
-
-    function doDiscard() {
-        if (selectedCards.length !== 1 || groups.flat().length < 14) return;
-        const card = selectedCards[0];
-        groups.forEach(g => {
-            const i = g.findIndex(c => c.id === card.id);
-            if (i > -1) discard.push(g.splice(i, 1)[0]);
-        });
-        selectedCards = []; isAITurn = true; render();
-        setTimeout(panduTurn, 1500);
-    }
-
-    function panduTurn() {
-        discard.push(deck.pop()); // Simple AI logic
-        isAITurn = false;
+        groups[1].push(src === 'deck' ? deck.pop() : discard.pop());
         render();
     }
 
+    function doDiscard() {
+        if (selected.length !== 1 || groups.flat().length < 14) return;
+        const card = selected[0];
+        groups.forEach(g => { const i = g.findIndex(c => c.id === card.id); if(i > -1) discard.push(g.splice(i,1)[0]); });
+        if (!jokerRevealed) revealJoker();
+        selected = []; turnCount++; isAITurn = true; render();
+        setTimeout(aiPlay, 1500);
+    }
+
+    function aiPlay() {
+        aiHand.push(deck.pop());
+        if(turnCount > 6 && Math.random() < 0.15) { endGame(true); } 
+        else { discard.push(aiHand.splice(0,1)[0]); isAITurn = false; render(); }
+    }
+
+    function doShow() { if (groups.flat().length === 14) endGame(false); }
+
+    function endGame(aiWon) {
+        render(true);
+        if(aiWon) { alert("Pandu Won!"); pScore += 60; } 
+        else { 
+            if(isPure(groups[0])) { alert("Valid Show!"); sScore += 40; } 
+            else { alert("Invalid Show! +80"); pScore += 80; }
+        }
+        if(pScore >= 201 || sScore >= 201) location.reload(); else setTimeout(init, 2000);
+    }
+
+    function autoSort() {
+        let f = groups.flat().sort((a,b) => suits.indexOf(a.s)-suits.indexOf(b.s) || ranks.indexOf(a.r)-ranks.indexOf(b.r));
+        groups = [[], f.splice(0,4), f.splice(0,4), f];
+        selected = []; render();
+    }
+
     function doDrop() {
-        if(isAITurn) return;
-        const p = (turnCount <= 1) ? 20 : 40;
-        if (confirm(`Drop Round? Penalty: ${p}`)) { pScore += p; init(); }
-    }
-
-    function doShow() {
-        if (groups.flat().length < 14) return alert("Draw first!");
-        document.getElementById('joker-ui').classList.add('revealed');
-        document.getElementById('joker-ui').innerHTML = `<span>${wildJoker.r}${wildJoker.s}</span>`;
-        setTimeout(() => {
-            if (confirm("Joker Revealed! Pure sequence valid?")) { sScore += 80; init(); }
-            else { pScore += 80; init(); }
-        }, 1000);
-    }
-
-    function autoGroup() {
-        let flat = groups.flat().sort((a,b) => suits.indexOf(a.s) - suits.indexOf(b.s));
-        groups = [flat.splice(0,3), flat.splice(0,3), flat.splice(0,3), flat];
-        selectedCards = []; render();
+        const p = (turnCount === 0) ? 20 : 40;
+        if (confirm(`Drop penalty ${p}?`)) { pScore += p; init(); }
     }
 
     init();
