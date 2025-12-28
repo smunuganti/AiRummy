@@ -1,281 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ai Rummy | Grand Casino Royale</title>
-    <style>
-        :root { 
-            --gold-grad: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
-            --gold: #ffd700; --neon: #00f3ff; --xmas-red: #d42426; 
-            --deep-felt: radial-gradient(circle at 50% 40%, #114026 0%, #050a07 100%);
-            --card-w: 13.5vw; --card-h: 20vw;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; touch-action: manipulation; }
+<style>
+    #home-page {
+        position: fixed; 
+        inset: 0; 
+        z-index: 5000;
+        /* Stable Luxury Gradient - Never Expires */
+        background: radial-gradient(circle at center, #1a472a 0%, #050a07 100%);
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center;
+        background-image: 
+            linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+            url('https://images.unsplash.com/photo-1511193311914-0346f16efe90?q=80&w=1000&auto=format&fit=crop'); /* Professional Casino Backdrop */
+        background-size: cover;
+        background-position: center;
+    }
+
+    .casino-frame {
+        background: rgba(0, 0, 0, 0.8); /* Darker glass effect */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 2px solid var(--gold);
+        border-radius: 24px; 
+        padding: 40px 20px;
+        width: 88%; 
+        max-width: 360px; 
+        text-align: center;
+        box-shadow: 0 0 40px rgba(0,0,0,0.9);
+    }
+</style>
+
+<div id="home-page">
+    <div class="casino-frame">
+        <h1 style="color:var(--gold); font-size: 2.8rem; margin:0;">Ai Rummy</h1>
+        <p style="letter-spacing: 4px; font-size: 0.65rem; margin-bottom: 25px; color: #fff;">REVEAL THE JOKER</p>
         
-        body { 
-            background: #000; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; 
-            overflow: hidden; height: 100dvh; width: 100vw; 
-        }
-
-        #snow-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0.6; }
-
-        /* --- LUXURY HOME --- */
-        #home-page {
-            position: fixed; inset: 0; z-index: 5000;
-            background: var(--deep-felt);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .casino-frame {
-            background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(15px);
-            border: 2px solid var(--gold); border-radius: 24px; padding: 40px 20px;
-            width: 88%; max-width: 360px; text-align: center;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 15px rgba(255,215,0,0.3);
-        }
-
-        /* --- GAME INTERFACE --- */
-        #game-view { display: none; flex-direction: column; height: 100dvh; width: 100vw; }
-        
-        .header { 
-            height: 50px; background: #000; display: flex; align-items: center; 
-            padding: 0 15px; border-bottom: 2px solid var(--gold); z-index: 10;
-        }
-        .header-item { flex: 1; font-size: 0.75rem; font-weight: bold; text-align: center; color: var(--gold); }
-
-        .table-area { 
-            flex: 1; background: var(--deep-felt); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; z-index: 1;
-        }
-        
-        .felt-rim { 
-            width: 92%; height: 125px; border: 5px solid #2b1b0d; border-radius: 65px; 
-            display: flex; justify-content: center; align-items: center; gap: 15px;
-            box-shadow: inset 0 0 50px #000; background: #163d26;
-        }
-
-        /* --- GRID (3-3-3-4) --- */
-        .grid-mobile { 
-            height: 42vh; background: #050a07; display: grid; 
-            grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; 
-            gap: 6px; padding: 10px; z-index: 10;
-        }
-        .slot { 
-            background: rgba(255, 215, 0, 0.04); 
-            border: 1px solid rgba(255, 215, 0, 0.1); 
-            border-radius: 10px; padding: 4px; display: flex; flex-wrap: wrap; 
-            align-content: flex-start; gap: 2px; position: relative;
-        }
-        .slot.valid { border-color: #2ecc71; background: rgba(46, 213, 115, 0.1); }
-        .slot::after { content: attr(data-label); position: absolute; bottom: 3px; right: 6px; font-size: 0.45rem; color: var(--gold); opacity: 0.3; }
-
-        /* --- CARDS --- */
-        .card { 
-            width: var(--card-w); height: var(--card-h); max-width: 55px; max-height: 80px;
-            background: #fff; color: #000; border-radius: 4px; display: flex; flex-direction: column; 
-            justify-content: space-between; padding: 4px; font-weight: bold; font-size: 0.8rem; 
-            border: 1px solid #999; box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-            background-image: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-            transition: transform 0.1s ease;
-        }
-        .card.red { color: var(--xmas-red); }
-        .card.selected { transform: translateY(-12px); border: 2.5px solid var(--neon); box-shadow: 0 0 15px var(--neon); }
-        .card-back { 
-            background: #0a2e1a; border: 1.5px solid var(--gold); 
-            background-image: radial-gradient(var(--gold) 0.5px, transparent 0.5px); 
-            background-size: 5px 5px; 
-        }
-
-        /* --- CONTROLS --- */
-        .controls { 
-            height: 75px; background: #000; display: grid; 
-            grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 8px;
-            border-top: 1px solid var(--gold); z-index: 10;
-        }
-        .btn-luxury { 
-            border: 1px solid var(--gold); border-radius: 6px; font-weight: 800; 
-            font-size: 0.6rem; cursor: pointer; color: var(--gold); background: #111;
-        }
-        .btn-gold-fill { background: var(--gold-grad); color: #000; border: none; }
-    </style>
-</head>
-<body>
-
-    <canvas id="snow-canvas"></canvas>
-
-    <div id="home-page">
-        <div class="casino-frame">
-            <h1 style="color:var(--gold); font-size: 2.8rem; margin:0;">Ai Rummy</h1>
-            <p style="letter-spacing: 4px; font-size: 0.65rem; margin-bottom: 25px; opacity: 0.8;">REVEAL THE JOKER</p>
-            <div style="margin-bottom: 30px;">
-                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Pandu" width="80" style="border: 2px solid var(--gold); border-radius: 50%; background: #000; padding: 3px;">
-                <p style="color:var(--gold); margin-top: 10px; font-size: 0.8rem; font-weight:bold;">DEALER: PANDU AI</p>
-            </div>
-            <button class="btn-gold-fill" style="padding:15px 40px; border-radius:50px; font-weight:900; font-size:1rem; cursor:pointer;" onclick="enterCasino()">START MATCH</button>
+        <div style="margin-bottom: 30px;">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Pandu&backgroundColor=b8860b" 
+                 width="80" 
+                 style="border: 2px solid var(--gold); border-radius: 50%; background: #000; padding: 3px;">
+            <p style="color:var(--gold); margin-top: 10px; font-size: 0.8rem; font-weight:bold;">DEALER: PANDU AI</p>
         </div>
+        
+        <button class="btn-gold-fill" 
+                style="padding:15px 40px; border-radius:50px; font-weight:900; font-size:1rem; cursor:pointer; width: 100%;" 
+                onclick="enterCasino()">
+            START MATCH
+        </button>
     </div>
-
-    <div id="game-view">
-        <div class="header">
-            <div style="color:var(--gold); font-size: 1.3rem;" onclick="location.reload()">🏠</div>
-            <div class="header-item">YOU: <span id="p-score">0</span></div>
-            <div class="header-item" id="status">YOUR TURN</div>
-            <div class="header-item">AI: <span id="s-score">0</span></div>
-        </div>
-
-        <div class="table-area">
-            <div id="ai-hand-ui" style="display:flex; margin-bottom: 10px;"></div>
-            <div class="felt-rim">
-                <div id="joker-ui" style="width:36px; height:52px; border:1px solid var(--gold); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:0.5rem; background:#000; font-weight:bold;">JOKER</div>
-                <div style="display:flex; gap: 12px;">
-                    <div class="card card-back" onclick="draw('deck')"></div>
-                    <div id="discard-pile" class="card" onclick="draw('discard')"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid-mobile">
-            <div class="slot" id="g0" data-label="PURE SEQ" onclick="moveToSlot(0)"></div>
-            <div class="slot" id="g1" data-label="GROUP 2" onclick="moveToSlot(1)"></div>
-            <div class="slot" id="g2" data-label="GROUP 3" onclick="moveToSlot(2)"></div>
-            <div class="slot" id="g3" data-label="GROUP 4" onclick="moveToSlot(3)"></div>
-        </div>
-
-        <div class="controls">
-            <button class="btn-luxury" onclick="autoSort()">SORT</button>
-            <button class="btn-luxury" style="color:#ff4757; border-color:#ff4757;" onclick="doDrop()">DROP</button>
-            <button class="btn-luxury btn-gold-fill" onclick="doDiscard()">DISCARD</button>
-            <button class="btn-luxury btn-gold-fill" style="background:#2ecc71; color:#fff;" onclick="doShow()">SHOW</button>
-        </div>
-    </div>
-
-<script>
-    /* Effects Engine */
-    const canvas = document.getElementById('snow-canvas');
-    const ctx = canvas.getContext('2d');
-    let W, H, flakes = [];
-    function initVisuals() {
-        W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight;
-        flakes = Array(50).fill().map(() => ({ x: Math.random()*W, y: Math.random()*H, r: Math.random()*2+1 }));
-    }
-    function loop() {
-        ctx.clearRect(0,0,W,H); ctx.fillStyle = "#fff"; ctx.beginPath();
-        flakes.forEach(f => { ctx.moveTo(f.x, f.y); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); f.y += 0.4; if(f.y>H) f.y=-5; });
-        ctx.fill(); requestAnimationFrame(loop);
-    }
-    window.addEventListener('resize', initVisuals); initVisuals(); loop();
-
-    /* Game Controller */
-    const suits = ['♥', '♦', '♣', '♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    let groups = [[], [], [], []], aiHand = [], deck = [], discard = [], wildJoker = null, selected = [];
-    let pScore = 0, sScore = 0, turnCount = 0, jokerRevealed = false, aiLocked = false;
-
-    function enterCasino() {
-        document.getElementById('home-page').style.display = 'none';
-        document.getElementById('game-view').style.display = 'flex';
-        initRound();
-    }
-
-    function initRound() {
-        deck = [];
-        for(let i=0; i<2; i++) suits.forEach(s => ranks.forEach(r => deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black', id: Math.random()})));
-        deck.sort(() => Math.random() - 0.5);
-        wildJoker = deck.pop();
-        aiHand = deck.splice(0, 13);
-        let hand = deck.splice(0, 13);
-        groups = [[], hand.splice(0,4), hand.splice(0,4), hand];
-        discard = [deck.pop()];
-        turnCount = 0; selected = []; jokerRevealed = false; aiLocked = false;
-        document.getElementById('joker-ui').style.background = "#000";
-        document.getElementById('joker-ui').innerHTML = "JOKER";
-        render();
-    }
-
-    function render() {
-        document.getElementById('p-score').innerText = pScore;
-        document.getElementById('s-score').innerText = sScore;
-        document.getElementById('ai-hand-ui').innerHTML = Array(13).fill('<div class="card card-back" style="width:16px; height:26px; margin-right:-8px;"></div>').join('');
-        
-        const top = discard[discard.length-1];
-        const dp = document.getElementById('discard-pile');
-        dp.className = `card ${top.c}`;
-        dp.innerHTML = `<span>${top.r}${top.s}</span><span>${top.s}</span>`;
-
-        groups.forEach((group, i) => {
-            const slot = document.getElementById(`g${i}`);
-            slot.innerHTML = '';
-            const pure = i===0 && checkPure(group);
-            slot.className = `slot ${pure ? 'valid' : ''}`;
-            if(pure && !jokerRevealed) revealJoker();
-            
-            group.forEach(card => {
-                const isSel = selected.some(sc => sc.id === card.id);
-                const div = document.createElement('div');
-                div.className = `card ${card.c} ${isSel ? 'selected' : ''}`;
-                div.innerHTML = `<span>${card.r}${card.s}</span><span>${card.s}</span>`;
-                div.onclick = (e) => { e.stopPropagation(); if(!aiLocked) toggleCard(card); };
-                slot.appendChild(div);
-            });
-        });
-    }
-
-    function checkPure(g) {
-        if (g.length < 3) return false;
-        if (!g.every(c => c.s === g[0].s)) return false;
-        const ids = g.map(c => ranks.indexOf(c.r)).sort((a,b) => a-b);
-        for(let i=0; i<ids.length-1; i++) if(ids[i+1] !== ids[i]+1) return false;
-        return true;
-    }
-
-    function revealJoker() {
-        jokerRevealed = true;
-        const ui = document.getElementById('joker-ui');
-        ui.style.background = "#fff"; ui.style.color = "#000";
-        ui.innerHTML = wildJoker.r + wildJoker.s;
-    }
-
-    function toggleCard(card) {
-        const i = selected.findIndex(sc => sc.id === card.id);
-        if (i > -1) selected.splice(i, 1); else selected.push(card);
-        render();
-    }
-
-    function moveToSlot(idx) {
-        if (!selected.length || aiLocked) return;
-        groups.forEach(g => selected.forEach(sc => { const i = g.findIndex(c => c.id === sc.id); if(i > -1) g.splice(i,1); }));
-        groups[idx].push(...selected);
-        selected = []; render();
-    }
-
-    function draw(src) { 
-        if(aiLocked || groups.flat().length >= 14) return;
-        groups[1].push(src==='deck' ? deck.pop() : discard.pop());
-        render(); 
-    }
-
-    function doDiscard() {
-        if(selected.length === 1 && groups.flat().length === 14 && !aiLocked) {
-            const c = selected[0];
-            groups.forEach(g => { const i = g.findIndex(card => card.id === c.id); if(i > -1) discard.push(g.splice(i,1)[0]); });
-            selected = []; turnCount++; aiLocked = true; render();
-            setTimeout(() => { discard.push(deck.pop()); aiLocked = false; render(); }, 1200);
-        }
-    }
-
-    function autoSort() {
-        if(aiLocked) return;
-        let f = groups.flat().sort((a,b) => suits.indexOf(a.s)-suits.indexOf(b.s) || ranks.indexOf(a.r)-ranks.indexOf(b.r));
-        groups = [[], f.splice(0,4), f.splice(0,4), f];
-        selected = []; render();
-    }
-
-    function doDrop() { if(!aiLocked) { pScore += (turnCount===0?20:40); initRound(); } }
-    function doShow() { 
-        if(groups.flat().length === 14 && !aiLocked) { 
-            if(checkPure(groups[0])) sScore+=80; else pScore+=80; 
-            initRound(); 
-        } 
-    }
-</script>
-</body>
-</html>
+</div>
