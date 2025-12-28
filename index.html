@@ -3,263 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A23 Style Rummy | Pandu AI</title>
+    <title>A23 Rummy | Player vs Pandu</title>
     <style>
         :root { 
-            --a23-blue: #0a3d62;
-            --a23-green: #1e7a43;
-            --a23-accent: #f39c12;
-            --wood-dark: #2c1a0b;
-            --card-w: 58px; 
-            --card-h: 84px; 
+            --a23-blue: #0a3d62; --a23-green: #1e7a43; --a23-accent: #f39c12;
+            --card-w: 52px; --card-h: 76px; 
         }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; touch-action: none; }
 
-        body { 
-            background: #000; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; 
-            margin: 0; overflow: hidden; touch-action: none; 
-        }
-
-        /* --- A23 HOME SCREEN --- */
-        #home-screen {
-            position: fixed; inset: 0; 
-            background: linear-gradient(135deg, var(--a23-blue) 0%, #000 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5000;
-        }
-
-        .a23-logo {
-            font-size: 3rem; font-weight: 900; color: #fff; margin-bottom: 10px;
-            text-shadow: 2px 2px var(--a23-accent);
-        }
-
-        .lobby-card {
-            background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px;
-            border: 1px solid rgba(255,255,255,0.2); text-align: center; width: 80%; max-width: 320px;
-        }
-
-        .play-now-btn {
-            background: var(--a23-accent); border: none; padding: 15px 40px; border-radius: 30px;
-            font-weight: bold; font-size: 1.1rem; color: #fff; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4); text-transform: uppercase; margin-top: 20px;
-        }
-
-        /* --- GAME TABLE --- */
-        #game-room { display: none; flex-direction: column; height: 100vh; background: #000; }
-
-        .header-strip {
-            height: 40px; background: #111; display: flex; justify-content: space-between; 
-            align-items: center; padding: 0 15px; border-bottom: 1px solid #333; font-size: 0.8rem;
-        }
-
-        .table-area {
-            flex-grow: 1; position: relative; perspective: 1000px;
-            background: radial-gradient(circle at center, var(--a23-green) 0%, #062c16 100%);
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        /* A23 Table Rim */
-        .table-rim {
-            width: 92%; height: 280px; border: 12px solid var(--wood-dark);
-            border-radius: 150px; box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 40px #000;
-            transform: rotateX(20deg); position: relative; display: flex; justify-content: center; align-items: center;
-        }
-
-        /* Joker & Piles */
-        .piles-container { transform: rotateX(-20deg); display: flex; gap: 20px; z-index: 10; align-items: center; }
+        /* --- HEADER & SCORE --- */
+        .header { height: 45px; background: #111; display: flex; justify-content: space-around; align-items: center; border-bottom: 2px solid var(--a23-accent); z-index: 10; position: relative; }
         
-        .closed-joker-a23 {
-            width: var(--card-w); height: var(--card-h); background: #111; 
-            border: 2px solid var(--a23-accent); border-radius: 5px; color: var(--a23-accent);
-            display: flex; align-items: center; justify-content: center; font-size: 0.6rem;
-            transform: rotate(-10deg); transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .closed-joker-a23.revealed { background: #fff; color: #000; transform: scale(1.2) rotate(0deg); }
-
-        .deck-box { width: var(--card-w); height: var(--card-h); border-radius: 5px; border: 2px solid #fff; position: relative; cursor: pointer; }
-        .open-deck { background: #fff; color: #000; font-weight: bold; display: flex; flex-direction: column; justify-content: space-between; padding: 5px; box-sizing: border-box; }
-        .closed-deck { background: #0a3d62; background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.1) 10px); }
-
-        /* --- CARDS & GROUPS --- */
-        .player-section { height: 220px; background: #0a2e1a; border-top: 3px solid var(--a23-accent); padding: 10px; }
-        
-        #card-groups-container { display: flex; gap: 8px; height: 120px; overflow-x: auto; padding-bottom: 10px; }
-        .group-slot { 
-            background: rgba(0,0,0,0.3); border-radius: 8px; min-width: 80px; padding: 5px;
-            display: flex; flex-wrap: nowrap; gap: -30px; /* Overlap effect */
+        /* --- GAME TABLE AREA --- */
+        .table-area { 
+            height: 42vh; background: radial-gradient(circle, var(--a23-green) 0%, #062c16 100%);
+            perspective: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 0;
         }
 
-        .card {
-            width: var(--card-w); height: var(--card-h); background: #fff; color: #000;
-            border-radius: 4px; border: 1px solid #ccc; flex-shrink: 0;
+        /* Opponent Area */
+        .opponent-area { display: flex; flex-direction: column; align-items: center; z-index: 5; }
+        .ai-avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--a23-accent); background: #222; }
+        .ai-hand-blind { display: flex; justify-content: center; width: 150px; height: 40px; margin-top: -15px; }
+        .card-back { 
+            width: 30px; height: 45px; background: var(--a23-blue); border: 1px solid #fff; border-radius: 3px; 
+            margin-right: -20px; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px);
+        }
+
+        /* Table Surface */
+        .felt-rim { width: 85%; height: 160px; border: 8px solid #2c1a0b; border-radius: 100px; transform: rotateX(25deg); box-shadow: inset 0 0 50px #000; display: flex; justify-content: center; align-items: center; gap: 25px; position: relative; }
+        .joker-box { position: absolute; left: 15%; top: 35%; width: var(--card-w); height: var(--card-h); border: 2px solid var(--a23-accent); border-radius: 5px; background: #111; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; transform: rotate(-10deg); transition: 0.5s; }
+        .joker-box.revealed { background: #fff; color: #000; transform: scale(1.1) rotate(0deg); z-index: 20; }
+
+        /* --- PLAYER HAND SECTION --- */
+        .hand-section { height: 280px; background: #0a2e1a; padding: 10px; border-top: 3px solid var(--a23-accent); }
+        #group-container { display: flex; gap: 10px; height: 110px; overflow-x: auto; padding-top: 5px; }
+        .slot { background: rgba(0,0,0,0.4); border-radius: 8px; min-width: 70px; padding: 8px 5px; display: flex; position: relative; }
+        .slot-num { position: absolute; top: -5px; left: 5px; font-size: 0.5rem; color: var(--a23-accent); }
+
+        .card { 
+            width: var(--card-w); height: var(--card-h); background: #fff; color: #000; border-radius: 4px;
             display: flex; flex-direction: column; justify-content: space-between; padding: 4px;
-            font-weight: bold; font-size: 0.9rem; margin-right: -35px; /* A23 Slide look */
+            font-weight: bold; font-size: 0.8rem; margin-right: -32px; border: 1px solid #ccc;
             box-shadow: -2px 0 5px rgba(0,0,0,0.3); transition: 0.2s;
         }
         .card:last-child { margin-right: 0; }
         .card.red { color: #d32f2f; }
-        .card.selected { transform: translateY(-25px); z-index: 100; border: 2px solid var(--a23-accent); }
+        .card.selected { transform: translateY(-25px); z-index: 100; border: 2px solid #00f3ff; box-shadow: 0 0 10px #00f3ff; }
 
-        /* Action Bar */
-        .action-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-top: 10px; }
-        .a23-btn { padding: 12px; border: none; border-radius: 5px; font-weight: bold; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; }
-        .btn-gray { background: #333; color: #fff; }
-        .btn-orange { background: var(--a23-accent); color: #fff; }
+        .controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
+        .btn { padding: 12px 0; border: none; border-radius: 5px; font-weight: bold; font-size: 0.7rem; cursor: pointer; text-transform: uppercase; }
+        .btn-g { background: #333; color: #fff; }
+        .btn-o { background: var(--a23-accent); color: #fff; }
     </style>
 </head>
 <body>
 
-    <div id="home-screen">
-        <div class="a23-logo">A23 RUMMY</div>
-        <div class="lobby-card">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Pandu" width="80" style="border-radius: 50%; border: 2px solid var(--a23-accent);">
-            <p>Pandu AI is waiting for a 201 Pool Match</p>
-            <button class="play-now-btn" onclick="startA23()">Play Now</button>
+    <div class="header">
+        <div>YOU: <span id="p-score">0</span></div>
+        <div id="ai-status" style="color:var(--a23-accent); font-weight: bold;">PANDU'S TURN</div>
+        <div>PANDU: <span id="s-score">0</span></div>
+    </div>
+
+    <div class="table-area">
+        <div class="opponent-area">
+            <img class="ai-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Pandu">
+            <div style="font-size: 0.6rem; margin-top: 2px;">PANDU (AI)</div>
+            <div class="ai-hand-blind" id="ai-cards"></div>
+        </div>
+
+        <div class="felt-rim">
+            <div id="joker-ui" class="joker-box">CLOSED</div>
+            <div style="display:flex; gap: 20px; transform: rotateX(-25deg);">
+                <div class="card" style="background:#0a3d62; color:#fff; border:1px solid #fff; display:flex; align-items:center; justify-content:center; margin:0;" onclick="draw('deck')">STOCK</div>
+                <div id="open-pile" class="card" style="margin:0;" onclick="draw('discard')"></div>
+            </div>
         </div>
     </div>
 
-    <div id="game-room">
-        <div class="header-strip">
-            <div id="p-score-ui">YOU: 0</div>
-            <div style="color: var(--a23-accent); font-weight: bold;">201 POOL</div>
-            <div id="s-score-ui">PANDU: 0</div>
+    <div class="hand-section">
+        <div id="group-container">
+            <div class="slot" id="s0" onclick="moveToSlot(0)"><div class="slot-num">G1</div></div>
+            <div class="slot" id="s1" onclick="moveToSlot(1)"><div class="slot-num">G2</div></div>
+            <div class="slot" id="s2" onclick="moveToSlot(2)"><div class="slot-num">G3</div></div>
+            <div class="slot" id="s3" onclick="moveToSlot(3)"><div class="slot-num">G4</div></div>
         </div>
 
-        <div class="table-area">
-            <div class="table-rim">
-                <div class="piles-container">
-                    <div id="a23-joker" class="closed-joker-a23">JOKER</div>
-                    
-                    <div class="deck-box closed-deck" onclick="draw('deck')"></div>
-                    <div id="open-pile" class="deck-box open-deck" onclick="draw('discard')"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="player-section">
-            <div id="card-groups-container">
-                <div class="group-slot" id="g0"></div>
-                <div class="group-slot" id="g1"></div>
-                <div class="group-slot" id="g2"></div>
-                <div class="group-slot" id="g3"></div>
-            </div>
-
-            <div class="action-bar">
-                <button class="a23-btn btn-gray" onclick="organize()">Sort</button>
-                <button class="a23-btn btn-gray" style="color:#ff6b6b;" onclick="doDrop()">Drop</button>
-                <button class="a23-btn btn-orange" onclick="doDiscard()">Discard</button>
-                <button class="a23-btn btn-orange" style="background:#27ae60;" onclick="doShow()">Show</button>
-            </div>
+        <div class="controls">
+            <button class="btn btn-g" onclick="autoGroup()">Auto Sort</button>
+            <button class="btn btn-g" onclick="doDrop()" style="color:red;">Drop</button>
+            <button class="btn btn-o" onclick="doDiscard()">Discard</button>
+            <button class="btn btn-o" style="background:#27ae60;" onclick="doShow()">Declare</button>
         </div>
     </div>
 
 <script>
     const suits = ['♥', '♦', '♣', '♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    let groups = [[], [], [], []], deck = [], discard = [], wildJoker = null, selected = null;
-    let pScore = 0, sScore = 0, turnCount = 0;
+    let groups = [[], [], [], []], deck = [], discard = [], wildJoker = null, selectedCards = [];
+    let pScore = 0, sScore = 0, turnCount = 0, isAITurn = false;
 
-    function startA23() {
-        document.getElementById('home-screen').style.display = 'none';
-        document.getElementById('game-room').style.display = 'flex';
-        initGame();
-    }
-
-    function initGame() {
+    function init() {
         deck = [];
-        // 2-Deck Logic
-        for(let i=0; i<2; i++) {
-            for(let s of suits) for(let r of ranks) deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black'});
-        }
+        for(let i=0; i<2; i++) for(let s of suits) for(let r of ranks) deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black', id: Math.random()});
         deck.sort(() => Math.random() - 0.5);
-        
         wildJoker = deck.pop();
-        document.getElementById('a23-joker').classList.remove('revealed');
-        document.getElementById('a23-joker').innerText = "JOKER";
-
-        let hand = deck.splice(0, 13);
-        groups = [hand.splice(0,4), hand.splice(0,3), hand.splice(0,3), hand];
+        let fullHand = deck.splice(0, 13);
+        groups = [fullHand.splice(0,4), fullHand.splice(0,3), fullHand.splice(0,3), fullHand];
         discard = [deck.pop()];
-        turnCount = 0;
+        turnCount = 0; selectedCards = []; isAITurn = false;
+        document.getElementById('joker-ui').classList.remove('revealed');
+        document.getElementById('joker-ui').innerText = "CLOSED";
         render();
     }
 
     function render() {
-        document.getElementById('p-score-ui').innerText = `YOU: ${pScore}`;
-        document.getElementById('s-score-ui').innerText = `PANDU: ${sScore}`;
+        document.getElementById('p-score').innerText = pScore;
+        document.getElementById('s-score').innerText = sScore;
+        document.getElementById('ai-status').innerText = isAITurn ? "PANDU IS THINKING..." : "YOUR TURN";
         
+        // Render Pandu's blind cards
+        const aiHand = document.getElementById('ai-cards');
+        aiHand.innerHTML = Array(13).fill('<div class="card-back"></div>').join('');
+
         const top = discard[discard.length-1];
         const op = document.getElementById('open-pile');
-        op.className = `deck-box open-deck ${top.c}`;
-        op.innerHTML = `<span>${top.r}${top.s}</span><span style="align-self:flex-end; transform:rotate(180deg)">${top.r}${top.s}</span>`;
+        op.className = `card ${top.c}`;
+        op.innerHTML = `<span>${top.r}${top.s}</span><span>${top.s}</span>`;
 
         groups.forEach((group, gIdx) => {
-            const slot = document.getElementById(`g${gIdx}`);
-            slot.innerHTML = '';
-            group.forEach((card, cIdx) => {
+            const slot = document.getElementById(`s${gIdx}`);
+            const label = slot.querySelector('.slot-num');
+            slot.innerHTML = ''; slot.appendChild(label);
+            group.forEach((card) => {
+                const isSelected = selectedCards.some(sc => sc.id === card.id);
                 const div = document.createElement('div');
-                const isSel = selected?.g === gIdx && selected?.c === cIdx;
-                div.className = `card ${card.c} ${isSel ? 'selected' : ''}`;
+                div.className = `card ${card.c} ${isSelected ? 'selected' : ''}`;
                 div.innerHTML = `<span>${card.r}${card.s}</span><span>${card.s}</span>`;
-                div.onclick = () => {
-                    if(isSel) { // Move to next group on double tap
-                        const cardObj = groups[gIdx].splice(cIdx, 1)[0];
-                        groups[(gIdx + 1) % 4].push(cardObj);
-                        selected = null;
-                    } else {
-                        selected = {g: gIdx, c: cIdx};
-                    }
-                    render();
-                };
+                div.onclick = (e) => { e.stopPropagation(); toggleSelection(card); };
                 slot.appendChild(div);
             });
         });
     }
 
-    function draw(src) {
-        if(groups.flat().length >= 14) return;
-        groups[0].push(src === 'deck' ? deck.pop() : discard.pop());
-        turnCount++;
+    function toggleSelection(card) {
+        if(isAITurn) return;
+        const idx = selectedCards.findIndex(sc => sc.id === card.id);
+        if (idx > -1) selectedCards.splice(idx, 1);
+        else selectedCards.push(card);
         render();
+    }
+
+    function moveToSlot(targetIdx) {
+        if (selectedCards.length === 0 || isAITurn) return;
+        groups.forEach(g => {
+            selectedCards.forEach(sc => {
+                const i = g.findIndex(c => c.id === sc.id);
+                if (i > -1) g.splice(i, 1);
+            });
+        });
+        groups[targetIdx].push(...selectedCards);
+        selectedCards = [];
+        render();
+    }
+
+    function draw(src) {
+        if (isAITurn || groups.flat().length >= 14) return;
+        groups[0].push(src === 'deck' ? deck.pop() : discard.pop());
+        turnCount++; render();
     }
 
     function doDiscard() {
-        if(!selected || groups.flat().length < 14) return;
-        discard.push(groups[selected.g].splice(selected.c, 1)[0]);
-        selected = null; render();
-        // Simple AI turn
-        setTimeout(() => { discard.push(deck.pop()); render(); }, 1000);
+        if (selectedCards.length !== 1 || groups.flat().length < 14) return;
+        const card = selectedCards[0];
+        groups.forEach(g => {
+            const i = g.findIndex(c => c.id === card.id);
+            if (i > -1) discard.push(g.splice(i, 1)[0]);
+        });
+        selectedCards = []; isAITurn = true; render();
+        setTimeout(panduTurn, 1500);
+    }
+
+    function panduTurn() {
+        discard.push(deck.pop()); // Simple AI logic
+        isAITurn = false;
+        render();
     }
 
     function doDrop() {
+        if(isAITurn) return;
         const p = (turnCount <= 1) ? 20 : 40;
-        if(confirm(`Drop this round? Penalty: ${p}`)) { pScore += p; checkMatch(); }
+        if (confirm(`Drop Round? Penalty: ${p}`)) { pScore += p; init(); }
     }
 
     function doShow() {
-        if(groups.flat().length < 14) return alert("Draw a card first!");
-        const jk = document.getElementById('a23-joker');
-        jk.classList.add('revealed');
-        jk.innerHTML = `<span>${wildJoker.r}${wildJoker.s}</span>`;
-        
+        if (groups.flat().length < 14) return alert("Draw first!");
+        document.getElementById('joker-ui').classList.add('revealed');
+        document.getElementById('joker-ui').innerHTML = `<span>${wildJoker.r}${wildJoker.s}</span>`;
         setTimeout(() => {
-            if(confirm("Joker Revealed! Pure sequence valid?")) {
-                sScore += 80; checkMatch();
-            } else {
-                pScore += 80; checkMatch();
-            }
+            if (confirm("Joker Revealed! Pure sequence valid?")) { sScore += 80; init(); }
+            else { pScore += 80; init(); }
         }, 1000);
     }
 
-    function checkMatch() {
-        if(pScore >= 201 || sScore >= 201) {
-            alert(pScore >= 201 ? "PANDU WINS!" : "YOU WIN!");
-            location.reload();
-        } else { initGame(); }
+    function autoGroup() {
+        let flat = groups.flat().sort((a,b) => suits.indexOf(a.s) - suits.indexOf(b.s));
+        groups = [flat.splice(0,3), flat.splice(0,3), flat.splice(0,3), flat];
+        selectedCards = []; render();
     }
 
-    function organize() {
-        let f = groups.flat().sort((a,b) => suits.indexOf(a.s) - suits.indexOf(b.s));
-        groups = [f.splice(0,4), f.splice(0,3), f.splice(0,3), f];
-        render();
-    }
+    init();
 </script>
 </body>
 </html>
