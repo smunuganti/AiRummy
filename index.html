@@ -3,165 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ai Rummy Mobile</title>
+    <title>Ai Rummy | Scoreboard</title>
     <style>
-        :root { 
-            --gold: #f1c40f; --neon: #00f3ff; 
-            --card-w: 11vw; --card-h: 16vw; /* Responsive card sizes based on viewport */
-            --max-card-w: 55px; --max-card-h: 80px;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            background: #050a07; color: #fff; font-family: -apple-system, sans-serif; 
-            margin: 0; overflow: hidden; height: 100vh; width: 100vw;
-            display: flex; flex-direction: column;
-        }
+        :root { --gold: #f1c40f; --neon: #00f3ff; --card-w: 46px; --card-h: 68px; }
+        * { box-sizing: border-box; }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; height: 100vh; }
 
-        /* --- MOBILE HEADER --- */
-        .header { 
-            height: 40px; background: #000; display: flex; justify-content: space-around; 
-            align-items: center; border-bottom: 1.5px solid var(--gold); font-size: 0.75rem;
+        /* --- TOURNAMENT SCOREBOARD OVERLAY --- */
+        #scoreboard-overlay {
+            position: fixed; inset: 0; z-index: 6000; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; text-align: center;
         }
+        .score-table { 
+            width: 100%; max-width: 320px; border-collapse: collapse; margin: 20px 0;
+            background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;
+        }
+        .score-table th, .score-table td { padding: 12px; border: 1px solid rgba(255,255,255,0.1); }
+        .score-table th { background: var(--gold); color: #000; text-transform: uppercase; font-size: 0.7rem; }
+        .current-round-row { color: var(--neon); font-weight: bold; }
 
-        /* --- TABLE AREA (TOP HALF) --- */
-        .table-area { 
-            flex: 1; background: radial-gradient(circle, #1a4a2e 0%, #000 100%); 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            position: relative; padding: 5px;
-        }
-
-        .ai-zone { margin-bottom: 5px; text-align: center; }
-        .ai-cards { display: flex; justify-content: center; height: 35px; }
-        .card-back { 
-            width: 20px; height: 30px; background: #0a3d62; border: 1px solid #fff; 
-            border-radius: 2px; margin-right: -12px; box-shadow: 1px 1px 3px #000;
-        }
-
-        .felt { 
-            width: 90%; height: 110px; border: 6px solid #2b1b0d; border-radius: 60px; 
-            display: flex; justify-content: center; align-items: center; gap: 15px;
-            box-shadow: inset 0 0 30px #000; position: relative;
-        }
-
-        .joker-ui { 
-            width: 35px; height: 50px; border: 1.5px solid #444; border-radius: 4px; 
-            background: #111; font-size: 0.5rem; display: flex; align-items: center; 
-            justify-content: center; transition: 0.4s;
-        }
-        .joker-ui.revealed { background: #fff; color: #000; border-color: var(--gold); }
-
-        /* --- GRID AREA (BOTTOM HALF) --- */
-        .grid-container { 
-            height: 45vh; background: #0a140d; display: grid; 
-            grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-            gap: 6px; padding: 6px; border-top: 2px solid var(--neon);
-        }
-        .slot { 
-            background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(0, 243, 255, 0.2);
-            border-radius: 6px; padding: 3px; display: flex; flex-wrap: wrap; 
-            align-content: flex-start; gap: 2px; position: relative; overflow: hidden;
-        }
-        .slot::after { content: attr(data-label); position: absolute; bottom: 2px; right: 4px; font-size: 0.5rem; color: var(--neon); opacity: 0.4; }
-        .slot.valid { border-color: #2ed573; background: rgba(46, 213, 115, 0.1); }
-
-        /* --- MOBILE CARDS --- */
-        .card { 
-            width: var(--card-w); height: var(--card-h); 
-            max-width: var(--max-card-w); max-height: var(--max-card-h);
-            background: #fff; color: #000; border-radius: 3px;
-            display: flex; flex-direction: column; justify-content: space-between; padding: 2px;
-            font-weight: bold; font-size: 0.7rem; border: 1px solid #ccc;
-        }
+        /* --- REUSE EXISTING STYLES --- */
+        #home-page, #game-view { height: 100vh; width: 100vw; }
+        #home-page { position: fixed; inset: 0; z-index: 5000; background: radial-gradient(circle, #0a2e1a, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .header { height: 45px; background: #111; display: flex; align-items: center; padding: 0 15px; border-bottom: 2px solid var(--gold); }
+        .table-area { flex: 1; background: radial-gradient(circle, #1e7a43, #050a07); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .grid-container { height: 45vh; background: #0a140d; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 10px; border-top: 2px solid var(--neon); }
+        .slot { background: rgba(255,255,255,0.05); border: 1px dashed rgba(0,243,255,0.2); border-radius: 8px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 3px; padding: 5px; position: relative; }
+        .card { width: var(--card-w); height: var(--card-h); background: #fff; color: #000; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; padding: 3px; font-weight: bold; font-size: 0.7rem; border: 1px solid #ccc; }
         .card.red { color: #d32f2f; }
-        .card.selected { transform: translateY(-4px); border: 2px solid var(--neon); box-shadow: 0 0 8px var(--neon); }
-
-        /* --- ACTION BAR --- */
-        .controls { 
-            height: 60px; background: #000; display: grid; 
-            grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 8px;
-        }
-        .btn { 
-            border: none; border-radius: 4px; font-weight: bold; font-size: 0.65rem; 
-            cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center;
-        }
-        .btn-sec { background: #222; color: #fff; }
-        .btn-pri { background: var(--gold); color: #000; }
+        .card.selected { transform: translateY(-8px); border: 2px solid var(--neon); }
+        .controls { height: 10vh; background: #000; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 8px; }
+        .btn-act { border: none; border-radius: 4px; font-weight: bold; font-size: 0.65rem; cursor: pointer; background: #333; color: #fff; text-transform: uppercase; }
+        .btn-main { background: var(--gold); border: none; padding: 15px 40px; border-radius: 50px; font-weight: 900; cursor: pointer; color: #1a472a; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div>YOU: <b id="p-score">0</b></div>
-        <div id="status" style="color:var(--gold); font-weight:bold; font-size:0.6rem">YOUR TURN</div>
-        <div>PANDU: <b id="s-score">0</b></div>
+    <div id="scoreboard-overlay">
+        <h2 style="color:var(--gold); margin:0;">ROUND SUMMARY</h2>
+        <p id="round-winner-txt" style="font-size: 0.9rem; margin: 10px 0;"></p>
+        
+        <table class="score-table">
+            <thead>
+                <tr>
+                    <th>PLAYER</th>
+                    <th>ROUND</th>
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>YOU</td>
+                    <td id="p-round-pts">0</td>
+                    <td id="p-total-pts">0</td>
+                </tr>
+                <tr>
+                    <td>PANDU</td>
+                    <td id="s-round-pts">0</td>
+                    <td id="s-total-pts">0</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button class="btn-main" onclick="nextRound()">NEXT ROUND</button>
     </div>
 
-    <div class="table-area">
-        <div class="ai-zone">
-            <div class="ai-cards" id="opp-cards"></div>
+    <div id="home-page">
+        <h1 style="color:var(--gold); font-size: 3.5rem; margin:0;">Ai Rummy</h1>
+        <button class="btn-main" onclick="enterRoom()">START GAME</button>
+    </div>
+
+    <div id="game-view" style="display:none;">
+        <div class="header">
+            <div style="cursor:pointer; font-size:1.2rem;" onclick="location.reload()">🏠</div>
+            <div style="flex:1; display:flex; justify-content:space-around; font-size:0.8rem; font-weight:bold;">
+                <div style="color:var(--gold)">YOU: <span id="top-p-score">0</span></div>
+                <div id="status">YOUR TURN</div>
+                <div style="color:var(--gold)">PANDU: <span id="top-s-score">0</span></div>
+            </div>
         </div>
-        <div class="felt">
-            <div id="joker-ui" class="joker-ui">LOCKED</div>
-            <div style="display:flex; gap: 10px;">
+
+        <div class="table-area">
+            <div id="ai-hand" style="display:flex; margin-bottom:10px;"></div>
+            <div style="width:80%; height:100px; border:4px solid #2b1b0d; border-radius:50px; display:flex; justify-content:center; align-items:center; gap:20px; background:radial-gradient(#1e7a43, #050a07);">
+                <div id="joker-ui" style="width:30px; height:45px; background:#111; border:1px solid #444; border-radius:4px; font-size:0.5rem; display:flex; align-items:center; justify-content:center;">JOKER</div>
                 <div class="card" style="background:#0a3d62; color:#fff; display:flex; align-items:center; justify-content:center;" onclick="draw('deck')">STOCK</div>
                 <div id="open-pile" class="card" onclick="draw('discard')"></div>
             </div>
         </div>
-    </div>
 
-    <div class="grid-container">
-        <div class="slot" id="g0" data-label="PURE SEQ" onclick="moveSelectedTo(0)"></div>
-        <div class="slot" id="g1" data-label="G2" onclick="moveSelectedTo(1)"></div>
-        <div class="slot" id="g2" data-label="G3" onclick="moveSelectedTo(2)"></div>
-        <div class="slot" id="g3" data-label="G4" onclick="moveSelectedTo(3)"></div>
-    </div>
+        <div class="grid-container">
+            <div class="slot" id="g0" data-label="PURE SEQ" onclick="moveSelected(0)"></div>
+            <div class="slot" id="g1" data-label="G2" onclick="moveSelected(1)"></div>
+            <div class="slot" id="g2" data-label="G3" onclick="moveSelected(2)"></div>
+            <div class="slot" id="g3" data-label="G4" onclick="moveSelected(3)"></div>
+        </div>
 
-    <div class="controls">
-        <button class="btn btn-sec" onclick="autoSort()">SORT</button>
-        <button class="btn btn-sec" style="color:#ff4757" onclick="doDrop()">DROP</button>
-        <button class="btn btn-pri" onclick="doDiscard()">DISCARD</button>
-        <button class="btn btn-pri" style="background:#2ed573" onclick="doShow()">SHOW</button>
+        <div class="controls">
+            <button class="btn-act" onclick="autoSort()">Sort</button>
+            <button class="btn-act" style="color:red;" onclick="doDrop()">Drop</button>
+            <button class="btn-act" onclick="doDiscard()">Discard</button>
+            <button class="btn-act" style="background:#2ecc71;" onclick="doShow()">Declare</button>
+        </div>
     </div>
 
 <script>
     const suits = ['♥', '♦', '♣', '♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+    const rVal = {'A':10,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':10,'Q':10,'K':10};
     let groups = [[], [], [], []], aiHand = [], deck = [], discard = [], wildJoker = null, selected = [];
-    let pScore = 0, sScore = 0, turnCount = 0, jokerRevealed = false, isAITurn = false;
+    let pTotal = 0, sTotal = 0, turnCount = 0;
 
-    function init() {
+    function enterRoom() {
+        document.getElementById('home-page').style.display = 'none';
+        document.getElementById('game-view').style.display = 'flex';
+        initRound();
+    }
+
+    function initRound() {
         deck = [];
-        for(let i=0; i<2; i++) for(let s of suits) for(let r of ranks) deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black', id: Math.random()});
+        for(let i=0; i<2; i++) for(let s of suits) for(let r of ranks) 
+            deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black', id: Math.random()});
         deck.sort(() => Math.random() - 0.5);
         wildJoker = deck.pop();
         aiHand = deck.splice(0, 13);
         let hand = deck.splice(0, 13);
         groups = [[], hand.splice(0,4), hand.splice(0,4), hand];
         discard = [deck.pop()];
-        turnCount = 0; selected = []; jokerRevealed = false; isAITurn = false;
-        document.getElementById('joker-ui').classList.remove('revealed');
-        document.getElementById('joker-ui').innerText = "LOCKED";
-        render();
+        turnCount = 0; selected = []; render();
     }
 
-    function render(revealAI = false) {
-        document.getElementById('p-score').innerText = pScore;
-        document.getElementById('s-score').innerText = sScore;
-        document.getElementById('status').innerText = isAITurn ? "AI THINKING..." : "YOUR TURN";
+    function render() {
+        document.getElementById('top-p-score').innerText = pTotal;
+        document.getElementById('top-s-score').innerText = sTotal;
+        const aiC = document.getElementById('ai-hand');
+        aiC.innerHTML = Array(13).fill('<div style="width:18px; height:28px; background:#0a3d62; border:1px solid #fff; margin-right:-10px; border-radius:2px;"></div>').join('');
         
-        const aiContainer = document.getElementById('opp-cards');
-        aiContainer.innerHTML = '';
-        if(revealAI) {
-            aiHand.forEach(c => {
-                const div = document.createElement('div');
-                div.className = `card ${c.c}`;
-                div.style.width = '15px'; div.style.height = '25px'; div.style.fontSize = '0.4rem'; div.style.marginRight = '-5px';
-                div.innerHTML = `<span>${c.r}${c.s}</span>`;
-                aiContainer.appendChild(div);
-            });
-        } else {
-            aiContainer.innerHTML = Array(aiHand.length).fill('<div class="card-back"></div>').join('');
-        }
-
         const top = discard[discard.length-1];
         const op = document.getElementById('open-pile');
         op.className = `card ${top.c}`;
@@ -170,7 +147,6 @@
         groups.forEach((group, i) => {
             const slot = document.getElementById(`g${i}`);
             slot.innerHTML = '';
-            slot.className = `slot ${i===0 && isPure(group) ? 'valid' : ''}`;
             group.forEach(card => {
                 const isSel = selected.some(sc => sc.id === card.id);
                 const div = document.createElement('div');
@@ -180,83 +156,58 @@
                 slot.appendChild(div);
             });
         });
-        if (!jokerRevealed && isPure(groups[0])) revealJoker();
-    }
-
-    function isPure(g) {
-        if (g.length < 3) return false;
-        if (!g.every(c => c.s === g[0].s)) return false;
-        const rIdx = g.map(c => ranks.indexOf(c.r)).sort((a,b) => a-b);
-        for(let i=0; i<rIdx.length-1; i++) if(rIdx[i+1] !== rIdx[i]+1) return false;
-        return true;
-    }
-
-    function revealJoker() {
-        jokerRevealed = true;
-        const ui = document.getElementById('joker-ui');
-        ui.classList.add('revealed');
-        ui.innerHTML = `<span>${wildJoker.r}${wildJoker.s}</span>`;
     }
 
     function toggle(card) {
-        if(isAITurn) return;
         const i = selected.findIndex(sc => sc.id === card.id);
         if (i > -1) selected.splice(i, 1); else selected.push(card);
         render();
     }
 
-    function moveSelectedTo(idx) {
+    function moveSelected(idx) {
         if (!selected.length) return;
         groups.forEach(g => selected.forEach(sc => { const i = g.findIndex(c => c.id === sc.id); if(i > -1) g.splice(i,1); }));
         groups[idx].push(...selected);
         selected = []; render();
     }
 
-    function draw(src) {
-        if (isAITurn || groups.flat().length >= 14) return;
-        groups[1].push(src === 'deck' ? deck.pop() : discard.pop());
-        render();
-    }
+    function draw(src) { if (groups.flat().length < 14) { groups[1].push(src==='deck' ? deck.pop() : discard.pop()); render(); } }
 
     function doDiscard() {
-        if (selected.length !== 1 || groups.flat().length < 14) return;
-        const card = selected[0];
-        groups.forEach(g => { const i = g.findIndex(c => c.id === card.id); if(i > -1) discard.push(g.splice(i,1)[0]); });
-        if (!jokerRevealed) revealJoker();
-        selected = []; turnCount++; isAITurn = true; render();
-        setTimeout(aiPlay, 1500);
-    }
-
-    function aiPlay() {
-        aiHand.push(deck.pop());
-        if(turnCount > 6 && Math.random() < 0.15) { endGame(true); } 
-        else { discard.push(aiHand.splice(0,1)[0]); isAITurn = false; render(); }
-    }
-
-    function doShow() { if (groups.flat().length === 14) endGame(false); }
-
-    function endGame(aiWon) {
-        render(true);
-        if(aiWon) { alert("Pandu Won!"); pScore += 60; } 
-        else { 
-            if(isPure(groups[0])) { alert("Valid Show!"); sScore += 40; } 
-            else { alert("Invalid Show! +80"); pScore += 80; }
+        if (selected.length === 1 && groups.flat().length === 14) {
+            const card = selected[0];
+            groups.forEach(g => { const i = g.findIndex(c => c.id === card.id); if(i > -1) discard.push(g.splice(i,1)[0]); });
+            selected = []; turnCount++; render();
+            if(Math.random() < 0.1) showScoreboard(80, 0, "Pandu Finished!");
+            else setTimeout(() => { discard.push(deck.pop()); render(); }, 800);
         }
-        if(pScore >= 201 || sScore >= 201) location.reload(); else setTimeout(init, 2000);
     }
 
-    function autoSort() {
-        let f = groups.flat().sort((a,b) => suits.indexOf(a.s)-suits.indexOf(b.s) || ranks.indexOf(a.r)-ranks.indexOf(b.r));
-        groups = [[], f.splice(0,4), f.splice(0,4), f];
-        selected = []; render();
+    function showScoreboard(pRound, sRound, msg) {
+        pTotal += pRound; sTotal += sRound;
+        document.getElementById('round-winner-txt').innerText = msg;
+        document.getElementById('p-round-pts').innerText = pRound;
+        document.getElementById('s-round-pts').innerText = sRound;
+        document.getElementById('p-total-pts').innerText = pTotal;
+        document.getElementById('s-total-pts').innerText = sTotal;
+        document.getElementById('scoreboard-overlay').style.display = 'flex';
     }
 
-    function doDrop() {
+    function nextRound() {
+        document.getElementById('scoreboard-overlay').style.display = 'none';
+        if (pTotal >= 201 || sTotal >= 201) location.reload(); else initRound();
+    }
+
+    function doDrop() { 
         const p = (turnCount === 0) ? 20 : 40;
-        if (confirm(`Drop penalty ${p}?`)) { pScore += p; init(); }
+        showScoreboard(p, 0, "You Dropped!"); 
+    }
+    
+    function doShow() { 
+        if(groups.flat().length === 14) showScoreboard(0, 80, "You Won the Round!"); 
     }
 
-    init();
+    function autoSort() { let f = groups.flat().sort((a,b) => suits.indexOf(a.s)-suits.indexOf(b.s) || ranks.indexOf(a.r)-ranks.indexOf(b.r)); groups = [[], f.splice(0,4), f.splice(0,4), f]; render(); }
 </script>
 </body>
 </html>
