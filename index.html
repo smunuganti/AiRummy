@@ -3,93 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ai Rummy Online | Verified Build</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <style>
-        :root { 
-            --gold: #ffd700; --gold-grad: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
-            --deep-green: radial-gradient(circle at 50% 40%, #165b33 0%, #050a07 100%);
-            --card-w: 13.5vw; --card-h: 20vw;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; touch-action: manipulation; }
-        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100dvh; width: 100vw; }
+    <title>Ai Rummy | Invite & Play</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        /* --- LOBBY DESIGN --- */
-        #lobby {
-            position: fixed; inset: 0; z-index: 5000; background: var(--deep-green);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .casino-panel {
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); border: 2px solid var(--gold);
-            padding: 30px; border-radius: 24px; width: 90%; max-width: 380px; text-align: center;
-        }
-        .tree-mini { font-size: 1.5rem; margin: 10px 0; color: var(--gold); }
-        input { width: 100%; padding: 15px; margin: 15px 0; border-radius: 10px; border: none; font-size: 1.2rem; text-align: center; font-weight: bold; background: #222; color: var(--gold); }
-
-        /* --- GAME UI --- */
-        #game-view { display: none; flex-direction: column; height: 100dvh; }
-        .header { height: 50px; background: #000; display: flex; align-items: center; padding: 0 15px; border-bottom: 2px solid var(--gold); }
-        .table { flex: 1; background: var(--deep-green); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .grid-mobile { height: 40vh; background: #050a07; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; padding: 10px; border-top: 1px solid var(--gold); }
-        .slot { background: rgba(255, 215, 0, 0.05); border: 1px dashed rgba(255, 215, 0, 0.2); border-radius: 12px; position: relative; }
-        
-        /* --- CARDS --- */
-        .card { width: var(--card-w); height: var(--card-h); max-width: 55px; max-height: 80px; background: #fff; color: #000; border-radius: 5px; font-weight: bold; border: 1px solid #999; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
-        .card.red { color: #d42426; }
-        .card-back { background: #0a2e1a; border: 1.5px solid var(--gold); }
-        
-        .btn-gold { background: var(--gold-grad); color: #1a472a; border: none; padding: 15px; border-radius: 50px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
-        .waiting-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-    </style>
-</head>
-<body>
-
-    <div id="lobby">
-        <div class="casino-panel">
-            <h1 style="color:var(--gold); margin-bottom: 5px;">Ai Rummy</h1>
-            <p style="font-size: 0.7rem; letter-spacing: 3px; opacity: 0.8;">REVEAL THE JOKER</p>
-            <div class="tree-mini">★<br>▲<br>■</div>
-            <input type="text" id="roomInput" placeholder="ROOM CODE">
-            <button class="btn-gold" style="width:100%; margin-bottom: 10px;" onclick="connect('host')">Create Tournament</button>
-            <button class="btn-gold" style="width:100%; background: #fff; color: #000;" onclick="connect('join')">Join Room</button>
-        </div>
-    </div>
-
-    <div id="wait-overlay" class="waiting-overlay">
-        <h2 style="color:var(--gold)">CONNECTING...</h2>
-        <p>Ensure your friend uses the same code.</p>
-    </div>
-
-    <div id="game-view">
-        <div class="header">
-            <div style="flex:1">ROOM: <span id="room-id-display" style="color:var(--gold)"></span></div>
-            <div id="turn-status" style="flex:1; text-align: center; font-weight: bold;">SYNCING...</div>
-            <div style="flex:1; text-align: right;">YOU: <span id="my-score">0</span></div>
-        </div>
-        
-        <div class="table">
-            <div id="opponent-hand" style="display:flex; margin-bottom: 20px; opacity: 0.5;"></div>
-            <div style="width:90%; height:110px; border:5px solid #2b1b0d; border-radius:60px; background:#163d26; display:flex; justify-content:center; align-items:center; gap:20px; box-shadow: inset 0 0 30px #000;">
-                <div id="joker-box" class="card card-back" style="width:35px; height:50px; border-color:var(--gold)"></div>
-                <div class="card card-back" onclick="drawFromDeck()"></div>
-                <div id="discard-pile" class="card"></div>
-            </div>
-        </div>
-
-        <div class="grid-mobile">
-            <div class="slot" id="g0" onclick="dropSelected(0)"></div>
-            <div class="slot" id="g1" onclick="dropSelected(1)"></div>
-            <div class="slot" id="g2" onclick="dropSelected(2)"></div>
-            <div class="slot" id="g3" onclick="dropSelected(3)"></div>
-        </div>
-    </div>
-
-<script>
-    // --- FIREBASE SYNC ENGINE ---
-    // (You will add your Config here from the Firebase Console)
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+        // 1. YOUR FIREBASE CONFIG HERE
+       const firebaseConfig = {
   apiKey: "AIzaSyCar3KmHlupEW6Q-54Oj84n1sjWCjSmmQk",
   authDomain: "ai-rummy.firebaseapp.com",
   projectId: "ai-rummy",
@@ -97,115 +17,109 @@ const firebaseConfig = {
   messagingSenderId: "188469967334",
   appId: "1:188469967334:web:13cceec9c8d9f131d23e27",
   measurementId: "G-W7YJJ8JYT3"
-};
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+        window.copyInvite = () => {
+            const code = document.getElementById('roomCode').value.toUpperCase();
+            if(!code) return alert("Enter a Room Code first!");
+            
+            const inviteLink = window.location.href.split('?')[0] + "?room=" + code;
+            const msg = `Let's play Ai Rummy! 🃏\nRoom Code: ${code}\nJoin here: ${inviteLink}`;
+            
+            navigator.clipboard.writeText(msg).then(() => {
+                const btn = document.getElementById('share-btn');
+                btn.innerText = "COPIED TO CLIPBOARD! ✅";
+                btn.style.background = "#2ecc71";
+                setTimeout(() => {
+                    btn.innerText = "SHARE INVITE LINK 🔗";
+                    btn.style.background = "none";
+                }, 2000);
+            });
+        };
 
-let roomRef;
-let myHand = []; // Local hand for the active player
-
-// --- 2. JOINING & INITIALIZING ---
-async function connect(role) {
-    const roomID = document.getElementById('roomInput').value.toUpperCase();
-    if(!roomID) return alert("Enter Room Code");
-    
-    playerRole = role;
-    roomRef = db.ref('rooms/' + roomID);
-
-    if(role === 'host') {
-        // Host sets up the initial deck and game state
-        const initialDeck = createDeck();
-        const p1Hand = initialDeck.splice(0, 13);
-        const p2Hand = initialDeck.splice(0, 13);
-        const joker = initialDeck.pop();
-        const firstDiscard = initialDeck.pop();
-
-        await roomRef.set({
-            deck: initialDeck,
-            p1Hand: p1Hand,
-            p2Hand: p2Hand,
-            joker: joker,
-            discard: [firstDiscard],
-            turn: 'host', // Host starts
-            status: 'playing'
+        // Auto-fill room code if link contains ?room=XXXX
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rCode = urlParams.get('room');
+            if(rCode) {
+                document.getElementById('roomCode').value = rCode.toUpperCase();
+                setOnline(); // Switch UI to online mode
+            }
         });
-    }
+    </script>
+    <style>
+        :root { 
+            --gold: #ffd700; --gold-grad: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
+            --deep-felt: radial-gradient(circle at 50% 40%, #165b33 0%, #050a07 100%);
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100dvh; }
 
-    // Listen for changes from the other player
-    roomRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) syncGame(data);
-    });
+        #home-page { position: fixed; inset: 0; background: var(--deep-felt); display: flex; flex-direction: column; align-items: center; padding-top: 5vh; }
+        
+        /* THE TREE */
+        .tree-container { display: flex; flex-direction: column; align-items: center; transform: scale(0.8); margin-bottom: 10px; }
+        .tree-row { display: flex; justify-content: center; margin-top: -35px; }
+        .card-ui { width: 50px; height: 75px; background: #fff; border-radius: 4px; border: 1.5px solid var(--gold); color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px #000; }
+        
+        .mode-box { background: rgba(0,0,0,0.85); padding: 25px; border-radius: 24px; border: 2.5px solid var(--gold); width: 90%; max-width: 380px; text-align: center; }
+        .btn-main { background: var(--gold-grad); color: #000; border: none; padding: 16px; width: 100%; border-radius: 50px; font-weight: 900; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+        
+        .share-btn { 
+            margin-top: 15px; background: none; border: 1.5px solid var(--gold); color: var(--gold); 
+            padding: 10px; width: 100%; border-radius: 50px; font-size: 0.7rem; font-weight: 800; 
+            cursor: pointer; transition: 0.3s;
+        }
 
-    startOnlineGame();
-}
+        input { width: 100%; padding: 12px; border-radius: 10px; border: none; text-align: center; font-weight: 900; font-size: 1.1rem; margin-top: 10px; background: #222; color: #fff; }
+    </style>
+</head>
+<body>
 
-// --- 3. THE SYNC ENGINE ---
-function syncGame(data) {
-    // Determine if it's my turn
-    isMyTurn = (data.turn === playerRole);
-    
-    // Update Global UI
-    document.getElementById('discard-pile').innerHTML = renderCard(data.discard[data.discard.length - 1]);
-    document.getElementById('joker-box').innerHTML = renderCard(data.joker);
-    
-    // Update local hand based on role
-    myHand = (playerRole === 'host') ? data.p1Hand : data.p2Hand;
-    
-    renderLocalHand();
-    updateTurnUI();
-}
+    <div id="home-page">
+        <h1 style="color:var(--gold); font-size: 2.8rem; margin:0;">Ai Rummy</h1>
+        <p style="letter-spacing: 4px; font-size: 0.6rem; margin-bottom: 20px; opacity: 0.8;">REVEAL THE JOKER</p>
 
-// --- 4. ACTION SYNCING ---
-async function handleDiscard(cardIndex) {
-    if(!isMyTurn) return;
+        <div class="tree-container">
+            <div class="tree-row"><div class="card-ui" style="color:red">A♥</div></div>
+            <div class="tree-row"><div class="card-ui">K♠</div><div class="card-ui" style="color:red">Q♦</div></div>
+            <div class="tree-row"><div class="card-ui" style="color:red">J♥</div><div class="card-ui">10♣</div><div class="card-ui">9♠</div></div>
+            <div style="width:35px; height:40px; background:#3d1c02; border-radius:2px; margin-top:-5px;"></div>
+        </div>
 
-    const snapshot = await roomRef.once('value');
-    const data = snapshot.val();
-    
-    // 1. Move card from hand to discard
-    const cardToDiscard = myHand.splice(cardIndex, 1)[0];
-    data.discard.push(cardToDiscard);
+        <div class="mode-box">
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <button id="ai-tab" onclick="setMode('AI')" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--gold); background:var(--gold); color:#000; font-weight:800; font-size:0.65rem;">VS PANDU AI</button>
+                <button id="online-tab" onclick="setMode('ONLINE')" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--gold); background:none; color:var(--gold); font-weight:800; font-size:0.65rem;">PLAY ONLINE</button>
+            </div>
+            
+            <div id="online-area" style="display:none;">
+                <input type="text" id="roomCode" placeholder="ROOM CODE (e.g. RUMMY7)">
+                <button id="share-btn" class="share-btn" onclick="copyInvite()">SHARE INVITE LINK 🔗</button>
+            </div>
 
-    // 2. Switch Turn
-    const nextTurn = (playerRole === 'host') ? 'join' : 'host';
+            <button class="btn-main" onclick="handleStart()">START MATCH</button>
+        </div>
+    </div>
 
-    // 3. Update Firebase
-    const updates = {
-        discard: data.discard,
-        turn: nextTurn
-    };
-    if(playerRole === 'host') updates.p1Hand = myHand;
-    else updates.p2Hand = myHand;
-
-    roomRef.update(updates);
-}
-
-async function drawFromDeck() {
-    if(!isMyTurn || myHand.length >= 14) return;
-
-    const snapshot = await roomRef.once('value');
-    const data = snapshot.val();
-    
-    const newCard = data.deck.pop();
-    myHand.push(newCard);
-
-    const updates = { deck: data.deck };
-    if(playerRole === 'host') updates.p1Hand = myHand;
-    else updates.p2Hand = myHand;
-
-    roomRef.update(updates);
-}
-
-// Helper: Create a standard deck
-function createDeck() {
-    const suits=['♥','♦','♣','♠'], ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    let d = [];
-    suits.forEach(s => ranks.forEach(r => d.push({r, s, c:(s==='♥'||s==='♦')?'red':'black'})));
-    return d.sort(() => Math.random() - 0.5);
-}
-    */
-</script>
+    <script>
+        function setMode(m) {
+            window.gameMode = m;
+            document.getElementById('ai-tab').style.background = m==='AI' ? 'var(--gold)' : 'none';
+            document.getElementById('ai-tab').style.color = m==='AI' ? '#000' : 'var(--gold)';
+            document.getElementById('online-tab').style.background = m==='ONLINE' ? 'var(--gold)' : 'none';
+            document.getElementById('online-tab').style.color = m==='ONLINE' ? '#000' : 'var(--gold)';
+            document.getElementById('online-area').style.display = m==='ONLINE' ? 'block' : 'none';
+        }
+        
+        function setOnline() { setMode('ONLINE'); } // Used for auto-filling from link
+        
+        function handleStart() {
+            // Your Game Launch Logic here
+            alert("Starting " + window.gameMode + " Match...");
+        }
+    </script>
 </body>
 </html>
