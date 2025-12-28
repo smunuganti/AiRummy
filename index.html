@@ -3,224 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rummy: You vs AI</title>
+    <title>Rummy Scorekeeper Mobile</title>
     <style>
         :root {
-            --felt-green: #1a472a;
-            --card-white: #ffffff;
-            --accent: #ffd700;
-            --valid: #27ae60;
-            --joker-color: #f39c12;
-            --discard: #e74c3c;
-            --ai-color: #34495e;
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
         }
 
         body {
-            font-family: -apple-system, sans-serif;
-            background-color: var(--felt-green);
-            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
             margin: 0;
-            padding: 10px;
-            overflow: hidden;
-            touch-action: none;
-        }
-
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        
-        /* AI Status Area */
-        .ai-zone {
-            background: var(--ai-color);
-            padding: 8px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .board-center {
+            padding: 15px;
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-bottom: 10px;
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
-            border-radius: 10px;
         }
 
-        .pile {
-            width: 50px;
-            height: 70px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: bold;
-            text-align: center;
-            border: 2px solid white;
+        .container {
+            width: 100%;
+            max-width: 500px; /* Perfect for phone screens */
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .stock-pile { background: #2980b9; color: white; cursor: pointer; }
-        .discard-pile { background: white; color: black; }
+        h2 { text-align: center; color: var(--primary); margin-top: 0; }
 
-        .hand-grid {
+        /* Scoreboard Layout */
+        .scoreboard {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
-        .group-box {
-            background: rgba(0,0,0,0.4);
-            border: 2px dashed rgba(255,255,255,0.3);
+        .player-card {
+            background: #f8f9fa;
+            padding: 15px;
             border-radius: 10px;
-            min-height: 100px;
-            padding: 5px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 3px;
-            justify-content: center;
+            text-align: center;
+            border: 2px solid #eee;
         }
 
-        .card {
-            width: 38px;
-            height: 52px;
-            background: var(--card-white);
-            color: black;
-            border-radius: 4px;
+        .player-card.active { border-color: var(--accent); }
+
+        .score-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: block;
+            margin: 5px 0;
+        }
+
+        /* Input Area */
+        .input-group {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 3px;
+            gap: 10px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; /* Prevents overflow */
+            -webkit-appearance: none; /* Removes iOS inner shadow */
+        }
+
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 1rem;
             font-weight: bold;
-            font-size: 0.75rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            position: relative;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
 
-        .card.selected { border: 2px solid var(--discard); transform: translateY(-5px); }
-        .card.red { color: #e74c3c; }
-        .card.is-joker::after {
-            content: 'J'; position: absolute; top: -3px; right: -3px;
-            background: var(--joker-color); width: 12px; height: 12px;
-            border-radius: 50%; font-size: 8px; display: flex; align-items: center; justify-content: center;
+        button:active { opacity: 0.7; }
+
+        .btn-add { background: var(--accent); color: white; }
+        .btn-reset { background: var(--primary); color: white; }
+
+        /* History Table - Scrollable for mobile */
+        .history-container {
+            margin-top: 20px;
+            overflow-x: auto;
         }
 
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        button { padding: 12px; border-radius: 8px; border: none; font-weight: bold; background: var(--accent); }
-        .status { text-align: center; font-size: 0.75rem; margin-bottom: 5px; color: #55efc4; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        /* Large touch targets for buttons */
+        @media (max-width: 480px) {
+            .score-display { font-size: 2rem; }
+            button { padding: 18px; } /* Even bigger for thumbs */
+        }
     </style>
 </head>
 <body>
 
-<div class="ai-zone" id="ai-msg">Opponent: Santosh is waiting...</div>
+<div class="container">
+    <h2>🎴 Rummy Score</h2>
+    
+    <div class="scoreboard">
+        <div class="player-card">
+            <div>You</div>
+            <span class="score-display" id="userScore">0</span>
+        </div>
+        <div class="player-card">
+            <div>Santosh</div>
+            <span class="score-display" id="santoshScore">0</span>
+        </div>
+    </div>
 
-<div class="header">
-    <div id="joker-info" style="font-size: 0.8rem; color: var(--accent);">Joker: ?</div>
-    <div class="status" id="game-status">Your Turn</div>
-</div>
+    <div class="input-group">
+        <div class="btn-row">
+            <input type="number" id="userIn" placeholder="Your Pts" inputmode="numeric">
+            <input type="number" id="santoshIn" placeholder="Santosh Pts" inputmode="numeric">
+        </div>
+        <button class="btn-add" onclick="addScores()">ADD ROUND</button>
+        <button class="btn-reset" onclick="resetGame()">RESET GAME</button>
+    </div>
 
-<div class="board-center">
-    <div class="pile stock-pile" onclick="playerDraw()">STOCK</div>
-    <div class="pile discard-pile" id="top-discard" onclick="playerDrawFromDiscard()">-</div>
-</div>
-
-<div class="hand-grid">
-    <div class="group-box" id="g1"></div>
-    <div class="group-box" id="g2"></div>
-    <div class="group-box" id="g3"></div>
-    <div class="group-box" id="g4"></div>
-</div>
-
-<div class="controls">
-    <button onclick="playerDiscard()" style="background: var(--discard); color: white;">DISCARD</button>
-    <button onclick="dealGame()">RESET</button>
+    <div class="history-container">
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th>Round</th>
+                    <th>You</th>
+                    <th>Santosh</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    const suits = ['♠', '♥', '♣', '♦'];
-    const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-    let deck = [], discardPile = [], wildJoker = '', selectedId = null, isAITurn = false;
+    let scores = JSON.parse(localStorage.getItem('rummyScores')) || { user: 0, santosh: 0, history: [] };
 
-    function dealGame() {
-        deck = [];
-        suits.forEach(s => values.forEach(v => deck.push({s, v, id: Math.random()})));
-        deck.sort(() => Math.random() - 0.5);
-        wildJoker = values[Math.floor(Math.random() * values.length)];
-        document.getElementById('joker-info').innerText = `Joker: ${wildJoker}`;
+    function updateUI() {
+        document.getElementById('userScore').innerText = scores.user;
+        document.getElementById('santoshScore').innerText = scores.santosh;
         
-        document.querySelectorAll('.group-box').forEach(b => b.innerHTML = '');
-        for(let i=0; i<13; i++) createCardEl(deck.pop(), 'g1');
+        const tbody = document.querySelector('#historyTable tbody');
+        tbody.innerHTML = scores.history.map((r, i) => `
+            <tr>
+                <td>${i + 1}</td>
+                <td>${r.u}</td>
+                <td>${r.s}</td>
+            </tr>
+        `).join('');
         
-        discardPile = [deck.pop()];
-        updateDiscardUI();
-        isAITurn = false;
-        document.getElementById('ai-msg').innerText = "Santosh: Your move.";
+        localStorage.setItem('rummyScores', JSON.stringify(scores));
     }
 
-    function createCardEl(card, groupId) {
-        const el = document.createElement('div');
-        el.className = `card ${ (card.s === '♥' || card.s === '♦') ? 'red' : '' } ${card.v === wildJoker ? 'is-joker' : ''}`;
-        el.dataset.v = card.v; el.dataset.s = card.s;
-        el.innerHTML = `<span>${card.v}</span><span style="align-self:flex-end">${card.s}</span>`;
-        el.onclick = (e) => {
-            if(isAITurn) return;
-            if(selectedId === el) {
-                const next = el.parentElement.id === 'g4' ? 'g1' : 'g' + (parseInt(el.parentElement.id[1])+1);
-                document.getElementById(next).appendChild(el);
-            }
-            if(selectedId) selectedId.classList.remove('selected');
-            selectedId = el;
-            el.classList.add('selected');
-        };
-        document.getElementById(groupId).appendChild(el);
+    function addScores() {
+        const uIn = parseInt(document.getElementById('userIn').value) || 0;
+        const sIn = parseInt(document.getElementById('santoshIn').value) || 0;
+
+        scores.user += uIn;
+        scores.santosh += sIn;
+        scores.history.push({ u: uIn, s: sIn });
+
+        document.getElementById('userIn').value = '';
+        document.getElementById('santoshIn').value = '';
+        updateUI();
+
+        if (scores.user >= 201 || scores.santosh >= 201) {
+            alert(scores.user >= 201 ? "Santosh Wins! (You crossed 201)" : "You Win! (Santosh crossed 201)");
+        }
     }
 
-    function playerDraw() {
-        if(isAITurn || document.querySelectorAll('.card').length >= 14) return;
-        createCardEl(deck.pop(), 'g1');
+    function resetGame() {
+        if(confirm("Start a new game?")) {
+            scores = { user: 0, santosh: 0, history: [] };
+            updateUI();
+        }
     }
 
-    function playerDrawFromDiscard() {
-        if(isAITurn || document.querySelectorAll('.card').length >= 14) return;
-        createCardEl(discardPile.pop(), 'g1');
-        updateDiscardUI();
-    }
-
-    function playerDiscard() {
-        if(!selectedId || isAITurn || document.querySelectorAll('.card').length < 14) return;
-        discardPile.push({v: selectedId.dataset.v, s: selectedId.dataset.s});
-        selectedId.remove();
-        selectedId = null;
-        updateDiscardUI();
-        startAITurn();
-    }
-
-    function startAITurn() {
-        isAITurn = true;
-        document.getElementById('ai-msg').innerText = "Santosh is thinking...";
-        setTimeout(() => {
-            // AI logic: Draw from stock, discard a random card (simulated)
-            const drawn = deck.pop();
-            document.getElementById('ai-msg').innerText = "Santosh drew a card.";
-            setTimeout(() => {
-                discardPile.push(drawn); 
-                updateDiscardUI();
-                document.getElementById('ai-msg').innerText = "Santosh discarded. Your turn!";
-                isAITurn = false;
-            }, 1000);
-        }, 1000);
-    }
-
-    function updateDiscardUI() {
-        const top = discardPile[discardPile.length-1] || {v: '-', s: ''};
-        const el = document.getElementById('top-discard');
-        el.innerText = `${top.v}${top.s}`;
-        el.style.color = (top.s === '♥' || top.s === '♦') ? 'red' : 'black';
-    }
-
-    dealGame();
+    updateUI();
 </script>
+
 </body>
 </html>
