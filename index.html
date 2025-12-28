@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ai Rummy | Grand Royale</title>
+    <title>Ai Rummy Royale</title>
     <style>
         :root { 
             --gold: #ffd700; --gold-grad: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
@@ -11,133 +11,193 @@
             --card-w: 14vw; --card-h: 21vw;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; touch-action: manipulation; }
-        body { background: #000; color: #fff; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; height: 100dvh; }
+        body { background: #000; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; height: 100dvh; }
 
-        /* --- NAVIGATION --- */
-        .page { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; transition: opacity 0.3s; }
+        /* --- UI UTILITIES --- */
+        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; transition: opacity 0.3s; }
         .hidden { display: none !important; }
 
-        /* --- LOBBY & TREE --- */
-        #home-page { background: var(--deep-felt); padding-top: 5vh; justify-content: flex-start; z-index: 100; }
-        .tree-container { transform: scale(0.85); margin-top: -20px; margin-bottom: 20px; }
-        .tree-row { display: flex; justify-content: center; margin-top: -35px; }
-        .t-card { width: 55px; height: 80px; background: #fff; border-radius: 6px; border: 1.5px solid var(--gold); margin: 2px; color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px #000; }
-        
-        .lobby-panel { background: rgba(0,0,0,0.85); padding: 25px; border-radius: 24px; border: 2px solid var(--gold); width: 90%; max-width: 360px; text-align: center; }
-        .tab-group { display: flex; gap: 8px; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 10px; border: 1px solid var(--gold); color: var(--gold); border-radius: 8px; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
-        .tab.active { background: var(--gold); color: #000; }
+        /* --- JOKER BUNKER & ANIMATION --- */
+        .joker-bunker { width: 40px; height: 58px; background: #1a1a1a; border: 2px solid #444; border-radius: 6px; position: relative; perspective: 1000px; }
+        .joker-inner { width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; position: relative; }
+        .flipped { transform: rotateY(180deg); }
+        .joker-back, .joker-front { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .joker-back { background: #0a2e1a; color: var(--gold); font-weight: bold; }
+        .joker-front { background: #fff; color: #000; transform: rotateY(180deg); font-weight: 900; font-size: 10px; border: 1px solid var(--gold); }
+        .revealed { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); }
 
-        /* --- GAME VIEW --- */
+        /* --- LAYOUT --- */
+        #home-page { background: var(--deep-felt); padding-top: 5vh; z-index: 100; }
+        .tree-container { transform: scale(0.8); margin-bottom: 20px; }
+        .tree-row { display: flex; justify-content: center; margin-top: -32px; }
+        .t-card { width: 50px; height: 75px; background: #fff; border: 1.5px solid var(--gold); border-radius: 4px; margin: 2px; color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+        
         #game-view { background: var(--deep-felt); z-index: 50; }
         .header { width: 100%; height: 60px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 2px solid var(--gold); }
-        .felt-rim { width: 94%; height: 130px; background: #163d26; border: 5px solid #2b1b0d; border-radius: 70px; display: flex; justify-content: center; align-items: center; gap: 15px; box-shadow: inset 0 0 40px #000; }
-        
-        .grid-slots { width: 100%; height: 42vh; background: #050a07; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 8px; border-top: 2px solid var(--gold); }
+        .felt { width: 94%; height: 130px; background: #163d26; border: 5px solid #2b1b0d; border-radius: 70px; display: flex; justify-content: center; align-items: center; gap: 15px; box-shadow: inset 0 0 40px #000; }
+        .grid { width: 100%; height: 42vh; background: #050a07; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 8px; border-top: 2px solid var(--gold); }
         .slot { border: 1px dashed rgba(255,215,0,0.2); border-radius: 10px; position: relative; display: flex; flex-wrap: wrap; gap: 2px; padding: 4px; }
+        .slot.valid { border: 2px solid #2ecc71; background: rgba(46, 204, 113, 0.1); }
         .slot::after { content: attr(data-label); position: absolute; bottom: 4px; right: 8px; font-size: 0.45rem; color: var(--gold); opacity: 0.3; }
 
-        .card { width: var(--card-w); height: var(--card-h); max-width: 55px; background: #fff; color: #000; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 1px solid #999; }
-        .card-back { background: #0a2e1a; border: 1.5px solid var(--gold); }
+        .card { width: var(--card-w); height: var(--card-h); max-width: 50px; background: #fff; color: #000; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 1px solid #999; font-size: 0.8rem; }
+        .card.red { color: #d42426; }
+        .card.selected { transform: translateY(-10px); border: 2px solid #00f3ff; box-shadow: 0 0 10px #00f3ff; }
+        .card-back { background: #0a2e1a; border: 1px solid var(--gold); }
 
         .controls { width: 100%; height: 85px; background: #000; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; }
-        .btn-action { background: #111; color: var(--gold); border: 1px solid var(--gold); border-radius: 8px; font-size: 0.6rem; font-weight: 800; cursor: pointer; }
+        .btn-act { background: #111; color: var(--gold); border: 1px solid var(--gold); border-radius: 8px; font-size: 0.6rem; font-weight: 800; }
     </style>
 </head>
 <body>
 
-    <div id="home-page" class="page">
-        <h1 style="color:var(--gold); font-size: 2.8rem; margin-top: 20px;">Ai Rummy</h1>
-        <p style="letter-spacing: 4px; font-size: 0.6rem; opacity: 0.7; margin-bottom: 20px;">REVEAL THE JOKER</p>
-
+    <div id="home-page" class="screen">
+        <h1 style="color:var(--gold); font-size: 2.5rem; margin-top: 20px;">Ai Rummy</h1>
         <div class="tree-container">
             <div class="tree-row"><div class="t-card" style="color:red">A♥</div></div>
             <div class="tree-row"><div class="t-card">K♠</div><div class="t-card" style="color:red">Q♦</div></div>
             <div class="tree-row"><div class="t-card" style="color:red">J♥</div><div class="t-card">10♣</div><div class="t-card">9♠</div></div>
-            <div style="display:flex; justify-content:center; margin-top:-5px;"><div style="width:35px; height:45px; background:#3d1c02; border-radius:2px;"></div></div>
+            <div style="display:flex; justify-content:center; margin-top:-5px;"><div style="width:30px; height:40px; background:#3d1c02;"></div></div>
         </div>
-
-        <div class="lobby-panel">
-            <div class="tab-group">
-                <div id="ai-tab" class="tab active" onclick="setMode('ai')">VS PANDU AI</div>
-                <div id="online-tab" class="tab" onclick="setMode('online')">ONLINE</div>
-            </div>
-            <div id="online-input" class="hidden" style="margin-bottom:15px;">
-                <input type="text" id="roomInput" placeholder="ROOM CODE" style="width:100%; padding:12px; border-radius:10px; text-align:center; font-weight:900; background:#222; border:none; color:#fff;">
-            </div>
-            <button onclick="handleStart()" style="width:100%; padding:16px; border-radius:50px; background:var(--gold-grad); border:none; font-weight:900; cursor:pointer;">START MATCH</button>
+        <div style="background:rgba(0,0,0,0.8); padding:20px; border-radius:20px; border:2px solid var(--gold); width:85%; text-align:center;">
+            <button onclick="startGame()" style="width:100%; padding:15px; border-radius:50px; background:var(--gold-grad); border:none; font-weight:900;">BATTLE PANDU</button>
         </div>
     </div>
 
-    <div id="game-view" class="page hidden">
+    <div id="game-view" class="screen hidden">
         <div class="header">
-            <div style="font-size:1.6rem; cursor:pointer;" onclick="goHome()">🏠</div>
-            <div id="status-txt" style="font-weight:900; color:var(--gold);">YOUR TURN</div>
-            <div id="score-txt" style="font-size:0.7rem; color:var(--gold);">P1: 0 | AI: 0</div>
+            <div onclick="location.reload()" style="cursor:pointer">🏠</div>
+            <div id="status" style="font-weight:900; color:var(--gold); font-size:0.8rem;">YOUR TURN</div>
+            <div id="p-score" style="font-size:0.7rem;">0 / 201</div>
         </div>
-
         <div style="flex:1; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <div class="felt-rim">
-                <div style="width:36px; height:54px; background:#000; border:1px solid var(--gold); border-radius:4px; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:10px;">JOKER</div>
-                <div style="display:flex; gap:12px;">
-                    <div class="card card-back" onclick="console.log('Draw Deck')"></div>
-                    <div id="discard-pile" class="card" style="font-size:1.2rem;">K♠</div>
+            <div class="felt">
+                <div id="joker-slot" class="joker-bunker"><div id="j-inner" class="joker-inner"><div class="joker-back">?</div><div id="j-front" class="joker-front"></div></div></div>
+                <div style="display:flex; gap:10px;">
+                    <div class="card card-back" onclick="drawCard('deck')"></div>
+                    <div id="discard-top" class="card" onclick="drawCard('discard')"></div>
                 </div>
             </div>
         </div>
-
-        <div class="grid-slots">
-            <div class="slot" id="g0" data-label="PURE SEQ"></div>
-            <div class="slot" id="g1" data-label="G2"></div>
-            <div class="slot" id="g2" data-label="G3"></div>
-            <div class="slot" id="g3" data-label="G4"></div>
+        <div class="grid">
+            <div class="slot" id="g0" data-label="SLOT 1" onclick="moveToSlot(0)"></div>
+            <div class="slot" id="g1" data-label="SLOT 2" onclick="moveToSlot(1)"></div>
+            <div class="slot" id="g2" data-label="SLOT 3" onclick="moveToSlot(2)"></div>
+            <div class="slot" id="g3" data-label="SLOT 4" onclick="moveToSlot(3)"></div>
         </div>
-
         <div class="controls">
-            <button class="btn-action">SORT</button>
-            <button class="btn-action" style="color:red">DROP</button>
-            <button class="btn-action" style="background:var(--gold); color:#000;">DISCARD</button>
-            <button class="btn-action" style="background:#2ecc71; color:#fff;">SHOW</button>
+            <button class="btn-act" onclick="autoSort()">SORT</button>
+            <button class="btn-act" style="color:red" onclick="dropMatch()">DROP</button>
+            <button class="btn-act" style="background:var(--gold); color:#000;" onclick="discardAction()">DISCARD</button>
+            <button class="btn-act" style="background:#2ecc71; color:#fff;" onclick="declareShow()">SHOW</button>
         </div>
     </div>
 
     <script>
-        let currentMode = 'ai';
+        let deck = [], discard = [], groups = [[],[],[],[]], selected = [], wildJoker = null, jokerRevealed = false;
+        const suits = ['♥','♦','♣','♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 
-        function setMode(mode) {
-            currentMode = mode;
-            document.getElementById('ai-tab').classList.toggle('active', mode === 'ai');
-            document.getElementById('online-tab').classList.toggle('active', mode === 'online');
-            document.getElementById('online-input').classList.toggle('hidden', mode === 'ai');
-        }
-
-        function handleStart() {
-            // Instant UI Switch
+        function startGame() {
             document.getElementById('home-page').classList.add('hidden');
             document.getElementById('game-view').classList.remove('hidden');
-
-            if (currentMode === 'online') {
-                const code = document.getElementById('roomInput').value;
-                console.log("Online Mode: Initializing Room " + code);
-                // Here is where you'd call your Firebase init function
-            } else {
-                console.log("AI Mode: Initializing Pandu...");
-                initMatch(); // Call your AI game start logic
-            }
+            initEngine();
         }
 
-        function goHome() {
-            if (confirm("Return to Lobby? Progress will be saved.")) {
-                document.getElementById('game-view').classList.add('hidden');
-                document.getElementById('home-page').classList.remove('hidden');
-            }
+        function initEngine() {
+            deck = [];
+            for(let i=0; i<2; i++) suits.forEach(s => ranks.forEach(r => deck.push({r, s, c: (s==='♥'||s==='♦')?'red':'black', v: ranks.indexOf(r)})));
+            deck.sort(() => Math.random() - 0.5);
+            
+            wildJoker = deck.pop();
+            document.getElementById('j-front').innerText = wildJoker.r + wildJoker.s;
+            document.getElementById('j-front').style.color = wildJoker.c === 'red' ? '#d42426' : '#000';
+
+            const hand = deck.splice(0, 13);
+            groups = [hand.slice(0,3), hand.slice(3,6), hand.slice(6,9), hand.slice(9,13)];
+            discard = [deck.pop()];
+            
+            // Step 1: Pre-game scan
+            checkAutoReveal();
+            render();
         }
 
-        function initMatch() {
-            // Placeholder for your card dealing logic
-            document.getElementById('status-txt').innerText = "YOUR TURN";
-            console.log("Match Started Successfully");
+        function checkPureSequence(group) {
+            if (group.length < 3) return false;
+            const s = group[0].s;
+            if (!group.every(c => c.s === s)) return false;
+            const vals = group.map(c => c.v).sort((a,b) => a-b);
+            for (let i = 0; i < vals.length - 1; i++) if (vals[i+1] !== vals[i] + 1) return false;
+            return true;
         }
+
+        function checkAutoReveal() {
+            if (groups.some(g => checkPureSequence(g))) revealJoker();
+        }
+
+        function revealJoker() {
+            if (jokerRevealed) return;
+            jokerRevealed = true;
+            document.getElementById('j-inner').classList.add('flipped');
+            document.getElementById('joker-slot').classList.add('revealed');
+            document.getElementById('status').innerText = "PURE SEQ! JOKER OPEN!";
+        }
+
+        function render() {
+            const dt = document.getElementById('discard-top');
+            const top = discard[discard.length-1];
+            dt.innerText = top.r + top.s; dt.className = `card ${top.c}`;
+
+            groups.forEach((g, i) => {
+                const s = document.getElementById('g' + i); s.innerHTML = '';
+                const isP = checkPureSequence(g);
+                s.className = `slot ${isP ? 'valid' : ''}`;
+                s.setAttribute('data-label', isP ? 'PURE SEQ ✓' : `G${i+1}`);
+                g.forEach(c => {
+                    const d = document.createElement('div');
+                    d.className = `card ${c.c} ${selected.includes(c) ? 'selected' : ''}`;
+                    d.innerText = c.r + c.s;
+                    d.onclick = (e) => { e.stopPropagation(); toggleSel(c); };
+                    s.appendChild(d);
+                });
+            });
+        }
+
+        function toggleSel(c) {
+            const i = selected.indexOf(c);
+            if (i > -1) selected.splice(i, 1); else selected.push(c);
+            render();
+        }
+
+        function moveToSlot(idx) {
+            if (!selected.length) return;
+            selected.forEach(s => groups.forEach(g => { const i = g.indexOf(s); if(i>-1) g.splice(i,1); }));
+            groups[idx].push(...selected); selected = []; render();
+        }
+
+        function drawCard(src) {
+            if (groups.flat().length >= 14) return;
+            groups[0].push(src === 'deck' ? deck.pop() : discard.pop());
+            render();
+        }
+
+        function discardAction() {
+            if (selected.length !== 1 || groups.flat().length < 14) return alert("Select 1 card to discard");
+            const c = selected[0];
+            groups.forEach(g => { const i = g.indexOf(c); if(i>-1) g.splice(i,1); });
+            discard.push(c); selected = [];
+            // Step 2: 14th card validation
+            checkAutoReveal();
+            render();
+        }
+
+        function autoSort() {
+            const f = groups.flat().sort((a,b) => a.v - b.v);
+            groups = [f.slice(0,4), f.slice(4,8), f.slice(8,11), f.slice(11)];
+            render();
+        }
+
+        function dropMatch() { if(confirm("Drop match? (20 pts)")) location.reload(); }
+        function declareShow() { alert(jokerRevealed ? "Checking hand..." : "Pure sequence required!"); }
     </script>
 </body>
 </html>
