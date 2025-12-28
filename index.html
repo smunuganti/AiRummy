@@ -3,124 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ai Rummy | Scoreboard</title>
+    <title>Ai Rummy Mobile</title>
     <style>
-        :root { --gold: #f1c40f; --neon: #00f3ff; --card-w: 46px; --card-h: 68px; }
-        * { box-sizing: border-box; }
-        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; height: 100vh; }
+        :root { 
+            --gold: #f1c40f; --neon: #00f3ff; --wood: #3d1c02;
+            --card-w: 13vw; --card-h: 19vw; /* Optimized for mobile aspect ratios */
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { 
+            background: #000; color: #fff; font-family: -apple-system, system-ui, sans-serif; 
+            margin: 0; overflow: hidden; height: 100vh; width: 100vw;
+            display: flex; flex-direction: column;
+        }
 
-        /* --- TOURNAMENT SCOREBOARD OVERLAY --- */
-        #scoreboard-overlay {
-            position: fixed; inset: 0; z-index: 6000; background: rgba(0,0,0,0.95);
-            display: none; flex-direction: column; align-items: center; justify-content: center;
+        /* --- MOBILE LOBBY --- */
+        #home-page {
+            position: fixed; inset: 0; z-index: 5000;
+            background: radial-gradient(circle at center, #0a2e1a, #000);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 20px; text-align: center;
         }
-        .score-table { 
-            width: 100%; max-width: 320px; border-collapse: collapse; margin: 20px 0;
-            background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;
+        .logo { font-size: 3rem; font-weight: 900; color: var(--gold); margin: 0; text-shadow: 0 0 15px rgba(241,196,15,0.4); }
+        .btn-start { 
+            background: var(--gold); color: #1a472a; border: none; padding: 18px 60px; 
+            border-radius: 50px; font-weight: 900; font-size: 1.2rem; margin-top: 40px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
-        .score-table th, .score-table td { padding: 12px; border: 1px solid rgba(255,255,255,0.1); }
-        .score-table th { background: var(--gold); color: #000; text-transform: uppercase; font-size: 0.7rem; }
-        .current-round-row { color: var(--neon); font-weight: bold; }
 
-        /* --- REUSE EXISTING STYLES --- */
-        #home-page, #game-view { height: 100vh; width: 100vw; }
-        #home-page { position: fixed; inset: 0; z-index: 5000; background: radial-gradient(circle, #0a2e1a, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .header { height: 45px; background: #111; display: flex; align-items: center; padding: 0 15px; border-bottom: 2px solid var(--gold); }
-        .table-area { flex: 1; background: radial-gradient(circle, #1e7a43, #050a07); display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .grid-container { height: 45vh; background: #0a140d; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 10px; border-top: 2px solid var(--neon); }
-        .slot { background: rgba(255,255,255,0.05); border: 1px dashed rgba(0,243,255,0.2); border-radius: 8px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 3px; padding: 5px; position: relative; }
-        .card { width: var(--card-w); height: var(--card-h); background: #fff; color: #000; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; padding: 3px; font-weight: bold; font-size: 0.7rem; border: 1px solid #ccc; }
+        /* --- TOP HUD --- */
+        .header { 
+            height: 50px; background: #111; display: flex; align-items: center; 
+            padding: 0 12px; border-bottom: 2px solid var(--gold);
+        }
+        .header-item { flex: 1; font-size: 0.7rem; font-weight: bold; text-align: center; }
+
+        /* --- COMPACT TABLE --- */
+        .table-view { 
+            flex: 1; background: radial-gradient(circle, #1e7a43 0%, #050a07 100%); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px; position: relative;
+        }
+        .ai-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--gold); margin-bottom: 5px; }
+        .felt-mobile { 
+            width: 95%; height: 130px; border: 8px solid var(--wood); border-radius: 60px; 
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+            box-shadow: inset 0 0 40px #000; position: relative;
+        }
+
+        /* --- 3-3-3-4 GRID (TOUCH OPTIMIZED) --- */
+        .grid-mobile { 
+            height: 42vh; background: #0a140d; display: grid; 
+            grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+            gap: 6px; padding: 8px; border-top: 2px solid var(--neon);
+        }
+        .slot-mobile { 
+            background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(0, 243, 255, 0.2);
+            border-radius: 8px; padding: 4px; display: flex; flex-wrap: wrap; 
+            align-content: flex-start; gap: 2px; position: relative;
+        }
+        .slot-mobile::after { content: attr(data-label); position: absolute; bottom: 2px; right: 4px; font-size: 0.5rem; color: var(--neon); opacity: 0.3; }
+
+        /* --- CARDS --- */
+        .card { 
+            width: var(--card-w); height: var(--card-h); background: #fff; color: #000; 
+            border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; 
+            padding: 3px; font-weight: bold; font-size: 0.8rem; border: 1px solid #ccc;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
         .card.red { color: #d32f2f; }
-        .card.selected { transform: translateY(-8px); border: 2px solid var(--neon); }
-        .controls { height: 10vh; background: #000; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 8px; }
-        .btn-act { border: none; border-radius: 4px; font-weight: bold; font-size: 0.65rem; cursor: pointer; background: #333; color: #fff; text-transform: uppercase; }
-        .btn-main { background: var(--gold); border: none; padding: 15px 40px; border-radius: 50px; font-weight: 900; cursor: pointer; color: #1a472a; }
+        .card.selected { transform: translateY(-8px); border: 2px solid var(--neon); box-shadow: 0 0 10px var(--neon); }
+
+        /* --- MOBILE NAV --- */
+        .controls { 
+            height: 70px; background: #000; display: grid; 
+            grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px;
+        }
+        .btn-m { 
+            border: none; border-radius: 6px; font-weight: bold; font-size: 0.65rem; 
+            text-transform: uppercase; cursor: pointer;
+        }
+        .btn-gray { background: #222; color: #fff; }
+        .btn-gold { background: var(--gold); color: #000; }
+
+        /* Scoreboard Overlay */
+        #score-overlay { 
+            position: fixed; inset: 0; z-index: 6000; background: rgba(0,0,0,0.95); 
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <div id="scoreboard-overlay">
-        <h2 style="color:var(--gold); margin:0;">ROUND SUMMARY</h2>
-        <p id="round-winner-txt" style="font-size: 0.9rem; margin: 10px 0;"></p>
-        
-        <table class="score-table">
-            <thead>
-                <tr>
-                    <th>PLAYER</th>
-                    <th>ROUND</th>
-                    <th>TOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>YOU</td>
-                    <td id="p-round-pts">0</td>
-                    <td id="p-total-pts">0</td>
-                </tr>
-                <tr>
-                    <td>PANDU</td>
-                    <td id="s-round-pts">0</td>
-                    <td id="s-total-pts">0</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <button class="btn-main" onclick="nextRound()">NEXT ROUND</button>
-    </div>
-
     <div id="home-page">
-        <h1 style="color:var(--gold); font-size: 3.5rem; margin:0;">Ai Rummy</h1>
-        <button class="btn-main" onclick="enterRoom()">START GAME</button>
+        <h1 class="logo">Ai Rummy</h1>
+        <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 100%;">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Pandu" width="80" style="border: 2px solid var(--gold); border-radius: 50%;">
+            <h3 style="margin: 15px 0 5px;">PANDU AI</h3>
+            <p style="font-size: 0.7rem; color: #888;">Tournament: 201 Pool</p>
+            <button class="btn-start" onclick="startMobileGame()">PLAY NOW</button>
+        </div>
     </div>
 
-    <div id="game-view" style="display:none;">
+    <div id="game-view" style="display:none; flex-direction: column; height: 100vh;">
         <div class="header">
-            <div style="cursor:pointer; font-size:1.2rem;" onclick="location.reload()">🏠</div>
-            <div style="flex:1; display:flex; justify-content:space-around; font-size:0.8rem; font-weight:bold;">
-                <div style="color:var(--gold)">YOU: <span id="top-p-score">0</span></div>
-                <div id="status">YOUR TURN</div>
-                <div style="color:var(--gold)">PANDU: <span id="top-s-score">0</span></div>
+            <div style="font-size: 1.5rem;" onclick="location.reload()">🏠</div>
+            <div class="header-item">YOU: <span id="p-total" style="color:var(--neon)">0</span></div>
+            <div class="header-item" id="status" style="color:var(--gold)">YOUR TURN</div>
+            <div class="header-item">PANDU: <span id="s-total" style="color:var(--neon)">0</span></div>
+        </div>
+
+        <div class="table-view">
+            <img class="ai-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Pandu">
+            <div id="ai-hand-ui" style="display:flex; margin-bottom: 10px;"></div>
+            
+            <div class="felt-mobile">
+                <div id="joker-ui" style="width:35px; height:50px; background:#111; border:1px solid #444; border-radius:4px; font-size:0.5rem; display:flex; align-items:center; justify-content:center;">LOCKED</div>
+                <div style="display:flex; gap: 12px;">
+                    <div class="card" style="background:#0a3d62; color:#fff; display:flex; align-items:center; justify-content:center; border: 1px solid #fff;" onclick="draw('deck')">DECK</div>
+                    <div id="open-pile" class="card" onclick="draw('discard')"></div>
+                </div>
             </div>
         </div>
 
-        <div class="table-area">
-            <div id="ai-hand" style="display:flex; margin-bottom:10px;"></div>
-            <div style="width:80%; height:100px; border:4px solid #2b1b0d; border-radius:50px; display:flex; justify-content:center; align-items:center; gap:20px; background:radial-gradient(#1e7a43, #050a07);">
-                <div id="joker-ui" style="width:30px; height:45px; background:#111; border:1px solid #444; border-radius:4px; font-size:0.5rem; display:flex; align-items:center; justify-content:center;">JOKER</div>
-                <div class="card" style="background:#0a3d62; color:#fff; display:flex; align-items:center; justify-content:center;" onclick="draw('deck')">STOCK</div>
-                <div id="open-pile" class="card" onclick="draw('discard')"></div>
-            </div>
-        </div>
-
-        <div class="grid-container">
-            <div class="slot" id="g0" data-label="PURE SEQ" onclick="moveSelected(0)"></div>
-            <div class="slot" id="g1" data-label="G2" onclick="moveSelected(1)"></div>
-            <div class="slot" id="g2" data-label="G3" onclick="moveSelected(2)"></div>
-            <div class="slot" id="g3" data-label="G4" onclick="moveSelected(3)"></div>
+        <div class="grid-mobile">
+            <div class="slot-mobile" id="g0" data-label="PURE SEQ" onclick="moveCards(0)"></div>
+            <div class="slot-mobile" id="g1" data-label="G2" onclick="moveCards(1)"></div>
+            <div class="slot-mobile" id="g2" data-label="G3" onclick="moveCards(2)"></div>
+            <div class="slot-mobile" id="g3" data-label="G4" onclick="moveCards(3)"></div>
         </div>
 
         <div class="controls">
-            <button class="btn-act" onclick="autoSort()">Sort</button>
-            <button class="btn-act" style="color:red;" onclick="doDrop()">Drop</button>
-            <button class="btn-act" onclick="doDiscard()">Discard</button>
-            <button class="btn-act" style="background:#2ecc71;" onclick="doShow()">Declare</button>
+            <button class="btn-m btn-gray" onclick="autoSort()">Sort</button>
+            <button class="btn-m btn-gray" style="color:red;" onclick="doDrop()">Drop</button>
+            <button class="btn-m btn-gold" onclick="doDiscard()">Discard</button>
+            <button class="btn-m btn-gold" style="background:#2ecc71; color:#fff;" onclick="doShow()">Declare</button>
         </div>
+    </div>
+
+    <div id="score-overlay">
+        <h2 style="color:var(--gold)">ROUND OVER</h2>
+        <div id="result-text" style="margin-bottom: 20px;"></div>
+        <button class="btn-start" onclick="nextRound()">NEXT ROUND</button>
     </div>
 
 <script>
     const suits = ['♥', '♦', '♣', '♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    const rVal = {'A':10,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':10,'Q':10,'K':10};
     let groups = [[], [], [], []], aiHand = [], deck = [], discard = [], wildJoker = null, selected = [];
     let pTotal = 0, sTotal = 0, turnCount = 0;
 
-    function enterRoom() {
+    function startMobileGame() {
         document.getElementById('home-page').style.display = 'none';
         document.getElementById('game-view').style.display = 'flex';
-        initRound();
+        initMatch();
     }
 
-    function initRound() {
+    function initMatch() {
         deck = [];
         for(let i=0; i<2; i++) for(let s of suits) for(let r of ranks) 
             deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black', id: Math.random()});
@@ -134,11 +172,12 @@
     }
 
     function render() {
-        document.getElementById('top-p-score').innerText = pTotal;
-        document.getElementById('top-s-score').innerText = sTotal;
-        const aiC = document.getElementById('ai-hand');
-        aiC.innerHTML = Array(13).fill('<div style="width:18px; height:28px; background:#0a3d62; border:1px solid #fff; margin-right:-10px; border-radius:2px;"></div>').join('');
+        document.getElementById('p-total').innerText = pTotal;
+        document.getElementById('s-total').innerText = sTotal;
         
+        const aiC = document.getElementById('ai-hand-ui');
+        aiC.innerHTML = Array(13).fill('<div style="width:15px; height:25px; background:#0a3d62; border:1px solid #fff; margin-right:-8px; border-radius:2px;"></div>').join('');
+
         const top = discard[discard.length-1];
         const op = document.getElementById('open-pile');
         op.className = `card ${top.c}`;
@@ -164,7 +203,7 @@
         render();
     }
 
-    function moveSelected(idx) {
+    function moveCards(idx) {
         if (!selected.length) return;
         groups.forEach(g => selected.forEach(sc => { const i = g.findIndex(c => c.id === sc.id); if(i > -1) g.splice(i,1); }));
         groups[idx].push(...selected);
@@ -178,35 +217,25 @@
             const card = selected[0];
             groups.forEach(g => { const i = g.findIndex(c => c.id === card.id); if(i > -1) discard.push(g.splice(i,1)[0]); });
             selected = []; turnCount++; render();
-            if(Math.random() < 0.1) showScoreboard(80, 0, "Pandu Finished!");
+            // Pandu Finish Chance
+            if(Math.random() < 0.1) finishRound(80, 0, "Pandu Finished!");
             else setTimeout(() => { discard.push(deck.pop()); render(); }, 800);
         }
     }
 
-    function showScoreboard(pRound, sRound, msg) {
-        pTotal += pRound; sTotal += sRound;
-        document.getElementById('round-winner-txt').innerText = msg;
-        document.getElementById('p-round-pts').innerText = pRound;
-        document.getElementById('s-round-pts').innerText = sRound;
-        document.getElementById('p-total-pts').innerText = pTotal;
-        document.getElementById('s-total-pts').innerText = sTotal;
-        document.getElementById('scoreboard-overlay').style.display = 'flex';
+    function finishRound(pPts, sPts, msg) {
+        pTotal += pPts; sTotal += sPts;
+        document.getElementById('result-text').innerText = msg;
+        document.getElementById('score-overlay').style.display = 'flex';
     }
 
     function nextRound() {
-        document.getElementById('scoreboard-overlay').style.display = 'none';
-        if (pTotal >= 201 || sTotal >= 201) location.reload(); else initRound();
+        document.getElementById('score-overlay').style.display = 'none';
+        if (pTotal >= 201 || sTotal >= 201) location.reload(); else initMatch();
     }
 
-    function doDrop() { 
-        const p = (turnCount === 0) ? 20 : 40;
-        showScoreboard(p, 0, "You Dropped!"); 
-    }
-    
-    function doShow() { 
-        if(groups.flat().length === 14) showScoreboard(0, 80, "You Won the Round!"); 
-    }
-
+    function doDrop() { finishRound(turnCount===0?20:40, 0, "You Dropped!"); }
+    function doShow() { if(groups.flat().length === 14) finishRound(0, 80, "You Won!"); }
     function autoSort() { let f = groups.flat().sort((a,b) => suits.indexOf(a.s)-suits.indexOf(b.s) || ranks.indexOf(a.r)-ranks.indexOf(b.r)); groups = [[], f.splice(0,4), f.splice(0,4), f]; render(); }
 </script>
 </body>
