@@ -3,256 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ai Rummy | Grand Royale</title>
+    <title>Ai Rummy | Royale</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        
-        const firebaseConfig = {  apiKey: "AIzaSyCar3KmHlupEW6Q-54Oj84n1sjWCjSmmQk",
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCar3KmHlupEW6Q-54Oj84n1sjWCjSmmQk",
   authDomain: "ai-rummy.firebaseapp.com",
   projectId: "ai-rummy",
   storageBucket: "ai-rummy.firebasestorage.app",
   messagingSenderId: "188469967334",
   appId: "1:188469967334:web:13cceec9c8d9f131d23e27",
   measurementId: "G-W7YJJ8JYT3" };
-        // const app = initializeApp(firebaseConfig); // Uncomment after adding keys
+        // const app = initializeApp(firebaseConfig);
+        // const db = getDatabase(app);
+
+        // Global State
+        window.isOnline = false;
+        window.myRole = "p1"; 
+
+        window.toggleMode = (mode) => {
+            window.isOnline = (mode === 'online');
+            document.getElementById('ai-btn').className = !window.isOnline ? 'tab active' : 'tab';
+            document.getElementById('web-btn').className = window.isOnline ? 'tab active' : 'tab';
+            document.getElementById('online-input').style.display = window.isOnline ? 'block' : 'none';
+        };
     </script>
     <style>
         :root { 
             --gold: #ffd700; --gold-grad: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
-            --xmas-red: #d42426; --neon: #00f3ff;
             --deep-felt: radial-gradient(circle at 50% 40%, #165b33 0%, #050a07 100%);
-            --card-w: 13.5vw; --card-h: 20vw;
+            --card-w: 14vw; --card-h: 21vw;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; touch-action: manipulation; }
-        body { background: #000; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; height: 100dvh; width: 100vw; }
+        body { background: #000; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; height: 100dvh; width: 100vw; }
 
-        /* --- UI UTILITIES --- */
-        #snow-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 5001; opacity: 0.6; }
-        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); transition: opacity 0.3s; }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,215,0,0.1); border-top: 4px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* Navigation */
+        .page { position: fixed; inset: 0; transition: opacity 0.3s; display: flex; flex-direction: column; align-items: center; }
+        .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-        /* --- HOME PAGE & TREE --- */
-        #home-page { position: fixed; inset: 0; z-index: 5000; background: var(--deep-felt); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5dvh; }
-        .title { font-size: 3rem; font-weight: 900; color: var(--gold); margin: 0; text-shadow: 0 0 15px rgba(255,215,0,0.3); }
-        .msg { letter-spacing: 5px; font-size: 0.65rem; color: #fff; opacity: 0.8; margin-bottom: 30px; }
+        /* Home Page */
+        #home-page { background: var(--deep-felt); padding-top: 5vh; justify-content: flex-start; z-index: 100; }
+        .tree-container { transform: scale(0.85); margin-top: -20px; }
+        .tree-row { display: flex; justify-content: center; margin-top: -30px; }
+        .t-card { width: 55px; height: 80px; background: #fff; border-radius: 6px; border: 1.5px solid var(--gold); margin: 2px; color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px #000; }
         
-        .tree { display: flex; flex-direction: column; align-items: center; transform: scale(0.9); margin-bottom: 20px; }
-        .tree-row { display: flex; justify-content: center; margin-top: -35px; }
-        .t-card { width: 50px; height: 75px; background: #fff; border-radius: 4px; border: 1.5px solid var(--gold); margin: 2px; color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px #000; }
-        
-        .lobby-box { background: rgba(0,0,0,0.8); padding: 25px; border-radius: 24px; border: 2.5px solid var(--gold); width: 88%; max-width: 360px; text-align: center; }
-        .btn { background: var(--gold-grad); color: #000; border: none; padding: 16px; width: 100%; border-radius: 50px; font-weight: 900; cursor: pointer; font-size: 1rem; }
-        .tab-btn { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 8px; border-radius: 8px; font-size: 0.65rem; flex: 1; cursor: pointer; }
-        .tab-btn.active { background: var(--gold); color: #000; }
+        .lobby-panel { background: rgba(0,0,0,0.8); padding: 25px; border-radius: 20px; border: 2px solid var(--gold); width: 90%; max-width: 360px; text-align: center; }
+        .tab-group { display: flex; gap: 8px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 10px; border: 1px solid var(--gold); color: var(--gold); border-radius: 8px; font-size: 0.7rem; font-weight: 800; }
+        .tab.active { background: var(--gold); color: #000; }
 
-        /* --- GAME BOARD --- */
-        #game-view { display: none; flex-direction: column; height: 100dvh; }
-        .header { height: 50px; border-bottom: 1.5px solid var(--gold); display: flex; align-items: center; padding: 0 15px; background: #000; z-index: 10; }
-        .table { flex: 1; background: var(--deep-felt); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .felt-rim { width: 92%; height: 120px; background: #163d26; border: 5px solid #2b1b0d; border-radius: 65px; display: flex; justify-content: center; align-items: center; gap: 15px; box-shadow: inset 0 0 40px #000; }
-        
-        .timer-ui { position: absolute; top: 10px; right: 15px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
-        .timer-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-        .timer-text { position: absolute; font-size: 0.7rem; font-weight: 900; color: var(--gold); }
+        /* Game View */
+        #game-view { background: var(--deep-felt); z-index: 50; }
+        .header { width: 100%; height: 60px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 2px solid var(--gold); }
+        .home-icon { font-size: 1.6rem; color: var(--gold); cursor: pointer; }
 
-        .grid { height: 42vh; background: #050a07; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 10px; border-top: 1.5px solid var(--gold); }
-        .slot { background: rgba(255,215,0,0.03); border: 1px dashed rgba(255,215,0,0.2); border-radius: 10px; position: relative; padding: 4px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 2px; }
-        .slot.valid { border-color: #2ecc71; background: rgba(46, 213, 115, 0.1); }
-        .slot::after { content: attr(data-label); position: absolute; bottom: 3px; right: 6px; font-size: 0.45rem; color: var(--gold); opacity: 0.3; }
+        .felt-rim { width: 94%; height: 130px; background: #163d26; border: 5px solid #2b1b0d; border-radius: 70px; display: flex; justify-content: center; align-items: center; gap: 15px; box-shadow: inset 0 0 40px #000; }
+        .grid-slots { width: 100%; height: 42vh; background: #050a07; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 8px; border-top: 2px solid var(--gold); }
+        .slot { border: 1px dashed rgba(255,215,0,0.2); border-radius: 10px; position: relative; }
+        .slot::after { content: attr(data-label); position: absolute; bottom: 4px; right: 8px; font-size: 0.45rem; color: var(--gold); opacity: 0.3; }
 
-        .card { width: var(--card-w); height: var(--card-h); max-width: 55px; background: #fff; color: #000; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; padding: 3px; font-weight: 900; font-size: 0.75rem; border: 1px solid #999; box-shadow: 2px 2px 5px rgba(0,0,0,0.4); }
-        .card.red { color: var(--xmas-red); }
-        .card.selected { transform: translateY(-12px); border: 2.5px solid var(--neon); box-shadow: 0 0 15px var(--neon); }
-        .card-back { background: #0a2e1a; border: 1.5px solid var(--gold); background-image: radial-gradient(var(--gold) 0.5px, transparent 0.5px); background-size: 5px 5px; }
-        
-        .controls { height: 75px; background: #000; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px; border-top: 1px solid var(--gold); }
+        .controls { width: 100%; height: 85px; background: #000; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; }
+        .btn-action { background: #111; color: var(--gold); border: 1px solid var(--gold); border-radius: 8px; font-size: 0.6rem; font-weight: 800; }
     </style>
 </head>
 <body>
 
-    <canvas id="snow-canvas"></canvas>
-    <div id="loader"><div class="spinner"></div></div>
+    <div id="home-page" class="page">
+        <h1 style="color:var(--gold); font-size: 2.8rem; margin-bottom: 0;">Ai Rummy</h1>
+        <p style="letter-spacing: 4px; font-size: 0.6rem; opacity: 0.7; margin-bottom: 20px;">REVEAL THE JOKER</p>
 
-    <div id="home-page">
-        <h1 class="title">Ai Rummy</h1>
-        <p class="msg">REVEAL THE JOKER</p>
-
-        <div class="tree">
-            <div class="star" style="color:var(--gold); font-size:2rem;">★</div>
+        <div class="tree-container">
             <div class="tree-row"><div class="t-card" style="color:red">A♥</div></div>
             <div class="tree-row"><div class="t-card">K♠</div><div class="t-card" style="color:red">Q♦</div></div>
             <div class="tree-row"><div class="t-card" style="color:red">J♥</div><div class="t-card">10♣</div><div class="t-card">9♠</div></div>
-            <div style="width:35px; height:45px; background:#3d1c02; border-radius:2px; margin-top:-5px;"></div>
+            <div style="display:flex; justify-content:center; margin-top:-5px;"><div style="width:35px; height:45px; background:#3d1c02; border-radius:2px;"></div></div>
         </div>
 
-        <div class="lobby-box">
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button id="ai-tab" class="tab-btn active" onclick="setMode('AI')">VS PANDU AI</button>
-                <button id="web-tab" class="tab-btn" onclick="setMode('WEB')">ONLINE</button>
+        <div class="lobby-panel">
+            <div class="tab-group">
+                <div id="ai-btn" class="tab active" onclick="toggleMode('ai')">VS PANDU AI</div>
+                <div id="web-btn" class="tab" onclick="toggleMode('online')">ONLINE</div>
             </div>
-            <div id="online-area" style="display:none; margin-bottom:15px;">
-                <input type="text" id="rCode" placeholder="ROOM CODE" style="width:100%; padding:12px; border-radius:10px; border:none; text-align:center; font-weight:900; background:#111; color:#fff;">
+            <div id="online-input" style="display:none; margin-bottom:15px;">
+                <input type="text" id="rCode" placeholder="ROOM CODE" style="width:100%; padding:12px; border-radius:10px; text-align:center; font-weight:900; background:#222; border:none; color:#fff;">
             </div>
-            <button class="btn" onclick="masterStart()">START MATCH</button>
+            <button onclick="launchGame()" style="width:100%; padding:16px; border-radius:50px; background:var(--gold-grad); border:none; font-weight:900; cursor:pointer;">START MATCH</button>
         </div>
     </div>
 
-    <div id="game-view">
+    <div id="game-view" class="page hidden">
         <div class="header">
-            <div style="flex:1; font-size:0.6rem; color:var(--gold);" id="p-label">YOU: 0</div>
-            <div style="flex:1; text-align:center; font-weight:900;" id="turn-status">YOUR TURN</div>
-            <div style="flex:1; text-align:right; font-size:0.6rem; color:var(--gold);" id="s-label">PANDU: 0</div>
+            <div class="home-icon" onclick="goHome()">🏠</div>
+            <div id="status" style="font-weight:900; color:var(--gold);">YOUR TURN</div>
+            <div id="score" style="font-size:0.7rem; color:var(--gold);">YOU: 0 | AI: 0</div>
         </div>
 
-        <div class="table">
-            <div class="timer-ui" id="timer-box">
-                <svg class="timer-svg" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/><circle id="timer-bar" cx="22" cy="22" r="20" fill="none" stroke="var(--gold)" stroke-width="4" stroke-dasharray="126"/></svg>
-                <div class="timer-text" id="timer-val">30</div>
-            </div>
-            <div id="ai-hand" style="display:flex; margin-bottom:15px;"></div>
+        <div style="flex:1; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
             <div class="felt-rim">
-                <div id="joker-slot" class="t-card" style="width:36px; height:52px; background:#000; border-color:var(--gold); font-size:0.5rem; color:var(--gold);">JOKER</div>
+                <div style="width:36px; height:54px; background:#000; border:1px solid var(--gold); border-radius:4px;"></div>
                 <div style="display:flex; gap:12px;">
-                    <div class="card card-back" onclick="playerAction('draw-deck')"></div>
-                    <div id="discard-top" class="card" onclick="playerAction('draw-discard')"></div>
+                    <div style="width:45px; height:70px; background:#0a2e1a; border:1px solid #fff; border-radius:4px;"></div>
+                    <div id="discard-pile" style="width:45px; height:70px; background:#fff; border-radius:4px;"></div>
                 </div>
             </div>
         </div>
 
-        <div class="grid">
-            <div class="slot" id="g0" data-label="PURE SEQ" onclick="moveCards(0)"></div>
-            <div class="slot" id="g1" data-label="G2" onclick="moveCards(1)"></div>
-            <div class="slot" id="g2" data-label="G3" onclick="moveCards(2)"></div>
-            <div class="slot" id="g3" data-label="G4" onclick="moveCards(3)"></div>
+        <div class="grid-slots">
+            <div class="slot" data-label="PURE SEQ"></div>
+            <div class="slot" data-label="G2"></div>
+            <div class="slot" data-label="G3"></div>
+            <div class="slot" data-label="G4"></div>
         </div>
 
         <div class="controls">
-            <button class="tab-btn" style="color:var(--gold)" onclick="autoSort()">SORT</button>
-            <button class="tab-btn" style="color:var(--xmas-red)" onclick="handleDrop()">DROP</button>
-            <button class="tab-btn active" onclick="handleDiscard()">DISCARD</button>
-            <button class="tab-btn active" style="background:#2ecc71" onclick="handleShow()">SHOW</button>
+            <button class="btn-action">SORT</button>
+            <button class="btn-action" style="color:red">DROP</button>
+            <button class="btn-action" style="background:var(--gold); color:#000;">DISCARD</button>
+            <button class="btn-action" style="background:#2ecc71; color:#fff;">SHOW</button>
         </div>
     </div>
 
-<script>
-    /* --- ENGINE CORE --- */
-    let gameMode = "AI", deck = [], discard = [], playerGroups = [[],[],[],[]], aiHand = [];
-    let pPoints = parseInt(localStorage.getItem('p_scr')) || 0, sPoints = parseInt(localStorage.getItem('s_scr')) || 0;
-    let isUserTurn = true, aiLocked = false, timerVal = 30, timerInt = null;
+    <script>
+        function launchGame() {
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('game-view').classList.remove('hidden');
+            if (window.isOnline) {
+                console.log("Connecting to Firebase Room: " + document.getElementById('rCode').value);
+            } else {
+                console.log("Initializing Pro Pandu AI...");
+            }
+        }
 
-    function setMode(m) {
-        gameMode = m;
-        document.getElementById('ai-tab').className = m === 'AI' ? 'tab-btn active' : 'tab-btn';
-        document.getElementById('web-tab').className = m === 'WEB' ? 'tab-btn active' : 'tab-btn';
-        document.getElementById('online-area').style.display = m === 'WEB' ? 'block' : 'none';
-    }
-
-    async function masterStart() {
-        document.getElementById('loader').style.display = 'flex';
-        // Simulate heavy work for smooth transition
-        await new Promise(r => setTimeout(r, 600));
-        
-        document.getElementById('home-page').style.display = 'none';
-        document.getElementById('game-view').style.display = 'flex';
-        document.getElementById('loader').style.display = 'none';
-        initMatch();
-    }
-
-    function initMatch() {
-        const suits = ['♥','♦','♣','♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-        deck = []; suits.forEach(s => ranks.forEach(r => deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black', id:Math.random()})));
-        deck = [...deck, ...deck].sort(() => Math.random() - 0.5);
-        
-        aiHand = deck.splice(0, 13);
-        let ph = deck.splice(0, 13);
-        playerGroups = [[], ph.slice(0,4), ph.slice(4,8), ph.slice(8)];
-        discard = [deck.pop()];
-        isUserTurn = true; aiLocked = false;
-        startTimer(); render();
-    }
-
-    function startTimer() {
-        clearInterval(timerInt); timerVal = 30;
-        timerInt = setInterval(() => {
-            if(aiLocked) return;
-            timerVal--;
-            document.getElementById('timer-val').innerText = timerVal;
-            document.getElementById('timer-bar').style.strokeDashoffset = 126 - (126 * timerVal / 30);
-            if(timerVal <= 0) autoPlay();
-        }, 1000);
-    }
-
-    function render() {
-        document.getElementById('p-label').innerText = "YOU: " + pPoints;
-        document.getElementById('s-label').innerText = "PANDU: " + sPoints;
-        document.getElementById('turn-status').innerText = isUserTurn ? "YOUR TURN" : "PANDU IS THINKING...";
-        
-        const top = discard[discard.length-1];
-        const dp = document.getElementById('discard-top');
-        dp.className = `card ${top.c}`; dp.innerHTML = `<span>${top.r}${top.s}</span><span>${top.s}</span>`;
-        
-        playerGroups.forEach((g, i) => {
-            const slot = document.getElementById('g' + i); slot.innerHTML = '';
-            g.forEach(c => {
-                const div = document.createElement('div');
-                div.className = `card ${c.c} ${c.sel ? 'selected' : ''}`;
-                div.innerHTML = `<span>${c.r}${c.s}</span><span>${c.s}</span>`;
-                div.onclick = () => { if(!aiLocked) { c.sel = !c.sel; render(); } };
-                slot.appendChild(div);
-            });
-        });
-        document.getElementById('ai-hand').innerHTML = Array(aiHand.length).fill('<div class="card card-back" style="width:14px; height:24px; margin-right:-6px;"></div>').join('');
-    }
-
-    function moveCards(slotIdx) {
-        let selected = [];
-        playerGroups.forEach(g => {
-            for(let i=g.length-1; i>=0; i--) { if(g[i].sel) { g[i].sel = false; selected.push(g.splice(i,1)[0]); } }
-        });
-        playerGroups[slotIdx].push(...selected); render();
-    }
-
-    function playerAction(type) {
-        if(!isUserTurn || aiLocked || playerGroups.flat().length >= 14) return;
-        playerGroups[1].push(type === 'draw-deck' ? deck.pop() : discard.pop());
-        render();
-    }
-
-    function handleDiscard() {
-        let sel = playerGroups.flat().filter(c => c.sel);
-        if(sel.length !== 1 || playerGroups.flat().length < 14) return;
-        
-        playerGroups.forEach(g => {
-            const i = g.findIndex(c => c.sel);
-            if(i > -1) discard.push(g.splice(i,1)[0]);
-        });
-        isUserTurn = false; aiLocked = true; render();
-        setTimeout(panduPlay, 1500);
-    }
-
-    function panduPlay() {
-        // Simple AI logic
-        aiHand.push(deck.pop());
-        discard.push(aiHand.splice(Math.floor(Math.random()*aiHand.length), 1)[0]);
-        isUserTurn = true; aiLocked = false; startTimer(); render();
-    }
-
-    function autoSort() {
-        let f = playerGroups.flat().sort((a,b) => a.s.localeCompare(b.s) || a.r.localeCompare(b.r));
-        playerGroups = [[], f.slice(0,4), f.slice(4,8), f.slice(8)]; render();
-    }
-
-    function handleDrop() { pPoints += 20; initMatch(); }
-    function handleShow() { sPoints += 80; initMatch(); }
-    function autoPlay() { if(isUserTurn) handleDrop(); }
-
-    /* Snowfall */
-    const cvs = document.getElementById('snow-canvas'), ctx = cvs.getContext('2d');
-    let W = cvs.width = window.innerWidth, H = cvs.height = window.innerHeight, flakes = Array(50).fill().map(() => ({x:Math.random()*W, y:Math.random()*H, r:Math.random()*2+1}));
-    function snow() { ctx.clearRect(0,0,W,H); ctx.fillStyle = "#fff"; ctx.beginPath(); flakes.forEach(f => { ctx.moveTo(f.x,f.y); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); f.y+=0.5; if(f.y>H) f.y=-5; }); ctx.fill(); requestAnimationFrame(snow); }
-    snow();
-</script>
+        function goHome() {
+            if (confirm("Quit match and return to Lobby?")) {
+                document.getElementById('game-view').classList.add('hidden');
+                document.getElementById('home-page').classList.remove('hidden');
+            }
+        }
+    </script>
 </body>
 </html>
