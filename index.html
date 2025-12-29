@@ -6,100 +6,185 @@
     <title>AI Rummy: Holiday 201 Pool</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --card-w: 45px; --card-h: 65px; }
-        body { background: #022c22; color: white; overflow: hidden; font-family: sans-serif; }
+        :root { --card-w: 48px; --card-h: 70px; }
+        body { background: #022c22; color: white; overflow: hidden; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
         .snowflake { position: fixed; top: -10px; color: white; pointer-events: none; z-index: 1000; animation: fall linear infinite; }
         @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
         
         /* Mobile Card Styling */
-        .card { width: var(--card-w); height: var(--card-h); background: white; border-radius: 4px; border: 1px solid #ccc; 
-                display: flex; align-items: center; justify-content: center; font-weight: bold; color: black; font-size: 12px; }
-        .card.selected { transform: translateY(-10px); border: 2px solid #fbbf24; box-shadow: 0 4px 10px rgba(251,191,36,0.5); }
-        .slot { min-height: 85px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.2); display: flex; flex-wrap: wrap; gap: 4px; padding: 10px; }
-        #slot-1 { border-color: #22c55e; background: rgba(34,197,94,0.05); }
+        .card { width: var(--card-w); height: var(--card-h); background: white; border-radius: 6px; border: 1px solid #ccc; 
+                display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: black; font-size: 14px; position: relative; touch-action: none; transition: transform 0.2s, box-shadow 0.2s; }
+        .card.selected { transform: translateY(-12px); border: 2px solid #fbbf24; box-shadow: 0 4px 15px rgba(251,191,36,0.6); z-index: 50; }
+        .card.red { color: #dc2626; }
+        .slot { min-height: 95px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 2px dashed rgba(255,255,255,0.15); display: flex; flex-wrap: wrap; gap: 4px; padding: 12px; transition: border-color 0.3s; position: relative; }
+        .slot-title { position: absolute; top: -8px; left: 10px; font-size: 9px; font-weight: 800; background: #064e3b; padding: 0 5px; color: #9ca3af; border-radius: 4px; }
+        #slot-1 { border-color: #22c55e; background: rgba(34,197,94,0.08); }
+        #slot-1 .slot-title { color: #4ade80; }
     </style>
 </head>
-<body>
+<body class="p-0 m-0">
 
-    <div id="home" class="fixed inset-0 z-[100] bg-emerald-950 flex flex-col items-center justify-center p-6 text-center">
-        <div id="snow-bg" class="absolute inset-0"></div>
+    <div id="home-page" class="fixed inset-0 z-[100] bg-emerald-950 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-700">
+        <div id="home-snow" class="absolute inset-0"></div>
         
-        <div class="mb-6 relative scale-125">
-            <div class="text-yellow-400 text-2xl mb-1 animate-bounce">⭐</div>
-            <div class="flex -space-x-4"><div class="card h-10 w-8 rotate-[-5deg]">A♥</div></div>
-            <div class="flex -space-x-4"><div class="card h-10 w-8 rotate-[-10deg]">K♠</div><div class="card h-10 w-8 rotate-[10deg]">Q♦</div></div>
-            <div class="w-4 h-3 bg-amber-900 mx-auto"></div>
+        <div class="mb-10 relative scale-[1.5]">
+            <div class="text-yellow-400 text-3xl mb-1 animate-pulse">⭐</div>
+            <div class="flex -space-x-4"><div class="card h-12 w-9 rotate-[-5deg]">A♥</div></div>
+            <div class="flex -space-x-5"><div class="card h-12 w-9 rotate-[-12deg]">K♠</div><div class="card h-12 w-9 rotate-[12deg]">Q♦</div></div>
+            <div class="w-6 h-4 bg-amber-900 mx-auto rounded-b shadow-inner"></div>
         </div>
 
-        <h1 class="text-4xl font-black mb-2">AI RUMMY</h1>
-        <p class="text-yellow-500 text-xs font-bold tracking-widest mb-6">CLOSED JOKER • 201 POOL</p>
-        <button onclick="enterGame()" class="bg-red-600 px-10 py-4 rounded-full font-black text-xl shadow-xl active:scale-95 transition">START GAME</button>
+        <h1 class="text-5xl font-black mb-1 drop-shadow-xl">AI RUMMY</h1>
+        <p class="text-yellow-500 text-[10px] font-black tracking-[0.3em] mb-8">CLOSED JOKER • 201 POOL</p>
+        
+        <p class="text-white/60 text-sm max-w-[260px] leading-tight mb-10 italic">
+            "Organize your hand, build a Pure Sequence, and survive the 201 Pool challenge."
+        </p>
+
+        <button onclick="enterGame()" class="relative px-14 py-5 bg-red-600 rounded-full font-black text-2xl shadow-2xl active:scale-95 transition-transform overflow-hidden">
+            START GAME
+            <div class="absolute inset-0 bg-white/20 animate-ping rounded-full"></div>
+        </button>
     </div>
 
-    <div id="game-ui" class="hidden h-screen flex flex-col">
-        <div class="flex justify-between p-3 bg-black/40 border-b border-white/10">
-            <div class="text-green-400 text-xs font-bold">YOU: <span id="p-score">0</span></div>
-            <div id="round-msg" class="text-[10px] text-gray-400">ROUND 1</div>
-            <div class="text-red-400 text-xs font-bold">AI: <span id="ai-score">0</span></div>
+    <div id="game-area" class="hidden h-screen flex flex-col opacity-0 transition-opacity duration-700">
+        <div class="flex justify-between items-center p-3 bg-black/40 border-b border-white/10 shadow-lg">
+            <div class="flex flex-col"><span class="text-[8px] text-green-400">PLAYER</span><span id="p-score" class="text-xl font-black">0</span></div>
+            <div class="text-center"><span class="text-[9px] text-gray-400 font-bold block">ROUND <span id="round-num">1</span></span><span id="game-status" class="text-[10px] text-yellow-500 font-bold italic animate-pulse">YOUR TURN</span></div>
+            <div class="flex flex-col items-end"><span class="text-[8px] text-red-400">AI BOT</span><span id="ai-score" class="text-xl font-black">0</span></div>
         </div>
 
-        <div class="flex justify-around items-center py-6 bg-white/5">
-            <div onclick="draw('deck')" class="w-14 h-20 bg-red-800 rounded border-2 border-white flex items-center justify-center shadow-lg">❄️</div>
-            <div id="joker-box" class="w-14 h-20 bg-indigo-900 border-2 border-yellow-500 rounded flex items-center justify-center">🎁</div>
-            <div id="discard-pile" onclick="draw('discard')" class="card !w-14 !h-20 bg-gray-200"></div>
+        <div class="flex justify-around items-center py-6 bg-emerald-900/40 relative">
+            <div onclick="draw('deck')" class="w-14 h-20 bg-red-900 rounded-lg border-2 border-white flex flex-col items-center justify-center shadow-xl active:scale-90 transition">
+                <span class="text-xs">❄️</span><span class="text-[8px] font-bold mt-1">DECK</span>
+            </div>
+            <div id="joker-container" class="w-14 h-20 bg-indigo-950 border-2 border-yellow-500 rounded-lg flex flex-col items-center justify-center shadow-2xl transition-all duration-700">
+                <span id="joker-val" class="text-2xl">🎁</span><span class="text-[7px] text-yellow-500 mt-1">JOKER</span>
+            </div>
+            <div id="discard-pile" onclick="draw('discard')" class="card !w-14 !h-20 shadow-lg flex flex-col border-gray-400">
+                <span id="discard-val"></span><span class="text-[7px] text-gray-400 mt-1">DISCARD</span>
+            </div>
+            <div id="show-bin" ondragover="event.preventDefault()" ondrop="handleShow(event)" class="w-14 h-20 border-2 border-dashed border-red-500 rounded-lg flex flex-col items-center justify-center bg-red-500/10">
+                <span class="text-[8px] font-black text-red-500">SHOW</span>
+            </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-4 space-y-4">
-            <div><p class="text-[9px] text-green-400 mb-1">SLOT 1: PURE SEQUENCE (3+)</p><div id="slot-1" class="slot" onclick="moveToSlot(1)"></div></div>
-            <div><p class="text-[9px] text-gray-400 mb-1">SLOTS 2-4: SETS & SEQUENCES</p><div id="slot-2" class="slot" onclick="moveToSlot(2)"></div></div>
+        <div id="grid-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-black/10">
+            <div id="slot-1" class="slot" onclick="selectSlot(0)"><div class="slot-title">SLOT 1: PURE SEQUENCE</div></div>
+            <div id="slot-2" class="slot" onclick="selectSlot(1)"><div class="slot-title">SLOT 2: SEQ/SET</div></div>
+            <div id="slot-3" class="slot" onclick="selectSlot(2)"><div class="slot-title">SLOT 3: SEQ/SET</div></div>
+            <div id="slot-4" class="slot" onclick="selectSlot(3)"><div class="slot-title">SLOT 4: SEQ/SET</div></div>
         </div>
 
-        <div class="p-4 bg-black/40 grid grid-cols-3 gap-2">
-            <button onclick="handleDrop()" class="bg-orange-700 py-3 rounded text-[10px] font-bold">DROP (-20)</button>
-            <div id="discard-btn" onclick="discardCard()" class="bg-gray-600 py-3 rounded text-[10px] font-bold text-center border-2 border-white/20">DISCARD</div>
-            <div id="show-btn" onclick="placeShow()" class="bg-yellow-600 py-3 rounded text-[10px] font-bold text-center border-2 border-yellow-300">PLACE SHOW</div>
+        <div class="p-3 bg-emerald-950 grid grid-cols-4 gap-2 border-t border-white/10">
+            <button onclick="autoSortHand()" class="bg-indigo-700 py-3 rounded-lg text-[10px] font-black shadow-lg">SORT</button>
+            <button onclick="handleDropAction()" class="bg-orange-800 py-3 rounded-lg text-[10px] font-black shadow-lg">DROP</button>
+            <div id="discard-btn" onclick="discardCard()" class="bg-gray-600 py-3 rounded-lg text-[10px] font-black text-center border-2 border-white/20 active:bg-gray-500">DISCARD</div>
+            <button onclick="groupSelected()" class="bg-blue-600 py-3 rounded-lg text-[10px] font-black shadow-lg">GROUP</button>
         </div>
     </div>
 
     <script>
-        // --- Core Engine ---
-        let state = { pScore: 0, aiScore: 0, round: 1, pHand: [], slots: [[],[],[],[]], selected: null, hasDrawn: false, joker: null };
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        let state = { pScore: 0, aiScore: 0, round: 1, pHand: [], slots: [[],[],[],[]], selected: [], hasDrawn: false, joker: null, deck: [], turn: 'player', jokerRevealed: false };
 
         function enterGame() {
-            document.getElementById('home').classList.add('hidden');
-            document.getElementById('game-ui').classList.remove('hidden');
-            initRound();
+            const home = document.getElementById('home-page');
+            const game = document.getElementById('game-area');
+            home.style.opacity = '0';
+            setTimeout(() => {
+                home.classList.add('hidden');
+                game.classList.remove('hidden');
+                game.style.opacity = '1';
+                initRound();
+            }, 700);
         }
 
         function initRound() {
-            // Simplified deal for deployment test
+            state.deck = [];
+            suits.forEach(s => values.forEach(v => state.deck.push({ v, s, color: (s==='♥'||s==='♦')?'red':'' })));
+            state.deck.sort(() => Math.random() - 0.5);
+            
+            state.pHand = state.deck.splice(0, 13);
+            state.joker = state.deck.pop();
+            state.discard = [state.deck.pop()];
+            state.slots = [[], state.pHand.slice(0, 4), state.pHand.slice(4, 8), state.pHand.slice(8, 13)]; // Slot 1 empty
             state.hasDrawn = false;
-            state.pHand = Array(13).fill(null).map((_, i) => ({v: '7', s: '♥', c: 'text-red-600', id: i})); 
-            // Manual Logic: Real card generator would go here
+            state.jokerRevealed = false;
             renderUI();
         }
 
         function renderUI() {
             document.getElementById('p-score').innerText = state.pScore;
             document.getElementById('ai-score').innerText = state.aiScore;
-            // Additional rendering logic for slots...
+            document.getElementById('round-num').innerText = state.round;
+            
+            // Discard Pile
+            const top = state.discard[state.discard.length - 1];
+            document.getElementById('discard-val').innerHTML = top ? `<span class="${top.color==='red'?'text-red-600':''}">${top.v}${top.s}</span>` : '';
+            
+            // Slots
+            for (let i = 0; i < 4; i++) {
+                const el = document.getElementById(`slot-${i+1}`);
+                const title = el.querySelector('.slot-title');
+                el.innerHTML = '';
+                el.appendChild(title);
+                state.slots[i].forEach((c, idx) => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = `card ${c.color==='red'?'red':''} ${state.selected.includes(`${i}-${idx}`) ? 'selected' : ''}`;
+                    cardDiv.innerHTML = `<span>${c.v}</span><span>${c.s}</span>`;
+                    cardDiv.onclick = (e) => { e.stopPropagation(); toggleCard(i, idx); };
+                    el.appendChild(cardDiv);
+                });
+            }
         }
 
-        function handleDrop() {
-            const penalty = state.hasDrawn ? 40 : 20;
-            if(confirm(`Drop this hand for ${penalty} points?`)) {
-                state.pScore += penalty;
+        function toggleCard(slotIdx, cardIdx) {
+            const key = `${slotIdx}-${cardIdx}`;
+            if (state.selected.includes(key)) state.selected = state.selected.filter(k => k !== key);
+            else state.selected.push(key);
+            renderUI();
+        }
+
+        function groupSelected() {
+            if (state.selected.length === 0) return;
+            // Move selected to Slot 1 as a test
+            let movedCards = [];
+            state.selected.sort().reverse().forEach(key => {
+                const [s, c] = key.split('-').map(Number);
+                movedCards.push(state.slots[s].splice(c, 1)[0]);
+            });
+            state.slots[0].push(...movedCards);
+            state.selected = [];
+            renderUI();
+        }
+
+        function autoSortHand() {
+            // Keep Slot 1 empty, sort others by suit
+            let all = state.slots.flat();
+            all.sort((a,b) => a.s.localeCompare(b.s));
+            state.slots = [[], all.slice(0,4), all.slice(4,8), all.slice(8,13)];
+            renderUI();
+        }
+
+        function handleDropAction() {
+            const p = state.hasDrawn ? 40 : 20;
+            if(confirm(`Drop this hand for ${p} points?`)) {
+                state.pScore += p;
+                state.round++;
                 initRound();
             }
         }
 
-        // --- Snowfall Init ---
-        const snow = document.getElementById('snow-bg');
-        for(let i=0; i<30; i++) {
+        // Snow animation
+        const snow = document.getElementById('home-snow');
+        for(let i=0; i<40; i++) {
             const s = document.createElement('div');
             s.className = 'snowflake'; s.innerHTML = '❄';
             s.style.left = Math.random()*100+'vw';
-            s.style.animationDuration = (Math.random()*3+2)+'s';
+            s.style.animationDuration = (Math.random()*3+3)+'s';
+            s.style.opacity = Math.random();
             snow.appendChild(s);
         }
     </script>
