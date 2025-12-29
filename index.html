@@ -2,185 +2,106 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holiday Rummy 201 Pool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Rummy: Holiday 201 Pool</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: radial-gradient(circle, #064e3b 0%, #022c22 100%); color: white; min-height: 100vh; overflow: hidden; }
-        .snowflake { position: fixed; top: -10px; color: white; pointer-events: none; z-index: 50; animation: fall linear infinite; }
+        :root { --card-w: 45px; --card-h: 65px; }
+        body { background: #022c22; color: white; overflow: hidden; font-family: sans-serif; }
+        .snowflake { position: fixed; top: -10px; color: white; pointer-events: none; z-index: 1000; animation: fall linear infinite; }
         @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
-        .card { width: 50px; height: 75px; background: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: black; border: 1px solid #ccc; cursor: pointer; user-select: none; transition: transform 0.2s; }
-        .card.selected { transform: translateY(-15px); border: 3px solid #fbbf24; box-shadow: 0 5px 15px rgba(251, 191, 36, 0.4); }
-        .ai-card { background: #991b1b; border: 1px solid white; color: transparent; }
-        .finish-zone { border: 3px dashed #ef4444; background: rgba(239, 68, 68, 0.1); }
-        .slot { min-height: 100px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); padding: 8px; }
+        
+        /* Mobile Card Styling */
+        .card { width: var(--card-w); height: var(--card-h); background: white; border-radius: 4px; border: 1px solid #ccc; 
+                display: flex; align-items: center; justify-content: center; font-weight: bold; color: black; font-size: 12px; }
+        .card.selected { transform: translateY(-10px); border: 2px solid #fbbf24; box-shadow: 0 4px 10px rgba(251,191,36,0.5); }
+        .slot { min-height: 85px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.2); display: flex; flex-wrap: wrap; gap: 4px; padding: 10px; }
+        #slot-1 { border-color: #22c55e; background: rgba(34,197,94,0.05); }
     </style>
 </head>
-<body class="p-2">
+<body>
 
-<div id="snow-container"></div>
-
-<div class="max-w-md mx-auto flex justify-between bg-black/40 p-3 rounded-xl border border-white/10 mb-4">
-    <div class="text-center">
-        <p class="text-[10px] text-green-400">PLAYER</p>
-        <p id="p-score" class="text-xl font-bold">0</p>
-    </div>
-    <div class="text-center">
-        <p id="status-msg" class="text-[10px] text-yellow-400 italic mt-1 font-bold tracking-widest">YOUR TURN</p>
-    </div>
-    <div class="text-center">
-        <p class="text-[10px] text-red-400">AI BOT</p>
-        <p id="ai-score" class="text-xl font-bold">0</p>
-    </div>
-</div>
-
-<div id="ai-hand" class="flex justify-center -space-x-6 mb-8 h-20"></div>
-
-<div class="flex justify-center items-center gap-6 mb-8">
-    <div id="deck" onclick="handleDraw('deck')" class="w-16 h-24 bg-red-900 border-2 border-white rounded-lg shadow-xl flex items-center justify-center cursor-pointer">❄️</div>
-    <div id="joker-box" class="w-16 h-24 bg-indigo-900 border-2 border-yellow-500 rounded-lg flex items-center justify-center shadow-2xl transition-all duration-1000">
-        <span id="joker-val" class="text-2xl">🎁</span>
-    </div>
-    <div id="discard-pile" onclick="handleDraw('discard')" class="card !w-16 !h-24 text-xl"></div>
-    <div id="finish-slot" ondragover="event.preventDefault()" ondrop="handleFinish(event)" class="w-16 h-24 finish-zone rounded-lg flex flex-col items-center justify-center text-red-500 font-black text-[10px] text-center px-1">
-        FINISH SLOT
-    </div>
-</div>
-
-<div class="grid grid-cols-2 gap-2 max-w-lg mx-auto mb-4">
-    <div id="slot-0" class="slot relative"><span class="absolute top-1 left-1 text-[8px] text-gray-400">SLOT 1 (PURE)</span><div class="flex flex-wrap gap-1 mt-3"></div></div>
-    <div id="slot-1" class="slot relative"><span class="absolute top-1 left-1 text-[8px] text-gray-400">SLOT 2</span><div class="flex flex-wrap gap-1 mt-3"></div></div>
-    <div id="slot-2" class="slot relative"><span class="absolute top-1 left-1 text-[8px] text-gray-400">SLOT 3</span><div class="flex flex-wrap gap-1 mt-3"></div></div>
-    <div id="slot-3" class="slot relative"><span class="absolute top-1 left-1 text-[8px] text-gray-400">SLOT 4</span><div class="flex flex-wrap gap-1 mt-3"></div></div>
-</div>
-
-<div class="flex justify-center gap-4">
-    <button onclick="groupSelected()" class="bg-blue-600 px-4 py-2 rounded-lg text-xs font-bold shadow-lg">GROUP SELECTED</button>
-    <button onclick="sortAuto()" class="bg-gray-700 px-4 py-2 rounded-lg text-xs font-bold shadow-lg">SORT SUITS</button>
-</div>
-
-<script>
-    const SUITS = ['♠', '♥', '♦', '♣'];
-    const VALS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    let state = { pScore: 0, aiScore: 0, round: 1, deck: [], pHand: [], aiHand: [], discard: [], joker: null, turn: 'player', selected: [] };
-
-    function init() {
-        state.deck = [];
-        SUITS.forEach(s => VALS.forEach(v => state.deck.push({ s, v, c: (s==='♥'||s==='♦')?'text-red-600':'text-black' })));
-        state.deck.sort(() => Math.random() - 0.5);
+    <div id="home" class="fixed inset-0 z-[100] bg-emerald-950 flex flex-col items-center justify-center p-6 text-center">
+        <div id="snow-bg" class="absolute inset-0"></div>
         
-        state.pHand = state.deck.splice(0, 13);
-        state.aiHand = state.deck.splice(0, 13);
-        state.joker = state.deck.pop();
-        state.discard = [state.deck.pop()];
-        state.turn = 'player';
-        render();
-    }
+        <div class="mb-6 relative scale-125">
+            <div class="text-yellow-400 text-2xl mb-1 animate-bounce">⭐</div>
+            <div class="flex -space-x-4"><div class="card h-10 w-8 rotate-[-5deg]">A♥</div></div>
+            <div class="flex -space-x-4"><div class="card h-10 w-8 rotate-[-10deg]">K♠</div><div class="card h-10 w-8 rotate-[10deg]">Q♦</div></div>
+            <div class="w-4 h-3 bg-amber-900 mx-auto"></div>
+        </div>
 
-    function render() {
-        document.getElementById('p-score').innerText = state.pScore;
-        document.getElementById('ai-score').innerText = state.aiScore;
-        
-        // Render AI (Blindfolded)
-        const aiEl = document.getElementById('ai-hand');
-        aiEl.innerHTML = state.aiHand.map(() => `<div class="card ai-card"></div>`).join('');
+        <h1 class="text-4xl font-black mb-2">AI RUMMY</h1>
+        <p class="text-yellow-500 text-xs font-bold tracking-widest mb-6">CLOSED JOKER • 201 POOL</p>
+        <button onclick="enterGame()" class="bg-red-600 px-10 py-4 rounded-full font-black text-xl shadow-xl active:scale-95 transition">START GAME</button>
+    </div>
 
-        // Render Discard
-        const top = state.discard[state.discard.length-1];
-        document.getElementById('discard-pile').innerHTML = top ? `<span class="${top.c}">${top.v}${top.s}</span>` : '';
+    <div id="game-ui" class="hidden h-screen flex flex-col">
+        <div class="flex justify-between p-3 bg-black/40 border-b border-white/10">
+            <div class="text-green-400 text-xs font-bold">YOU: <span id="p-score">0</span></div>
+            <div id="round-msg" class="text-[10px] text-gray-400">ROUND 1</div>
+            <div class="text-red-400 text-xs font-bold">AI: <span id="ai-score">0</span></div>
+        </div>
 
-        // Render Player Slots
-        for(let i=0; i<4; i++){
-            const slotEl = document.getElementById(`slot-${i}`).querySelector('div');
-            slotEl.innerHTML = '';
-            // For this demo, we auto-sort all player cards into a flat hand view for easier clicking
+        <div class="flex justify-around items-center py-6 bg-white/5">
+            <div onclick="draw('deck')" class="w-14 h-20 bg-red-800 rounded border-2 border-white flex items-center justify-center shadow-lg">❄️</div>
+            <div id="joker-box" class="w-14 h-20 bg-indigo-900 border-2 border-yellow-500 rounded flex items-center justify-center">🎁</div>
+            <div id="discard-pile" onclick="draw('discard')" class="card !w-14 !h-20 bg-gray-200"></div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            <div><p class="text-[9px] text-green-400 mb-1">SLOT 1: PURE SEQUENCE (3+)</p><div id="slot-1" class="slot" onclick="moveToSlot(1)"></div></div>
+            <div><p class="text-[9px] text-gray-400 mb-1">SLOTS 2-4: SETS & SEQUENCES</p><div id="slot-2" class="slot" onclick="moveToSlot(2)"></div></div>
+        </div>
+
+        <div class="p-4 bg-black/40 grid grid-cols-3 gap-2">
+            <button onclick="handleDrop()" class="bg-orange-700 py-3 rounded text-[10px] font-bold">DROP (-20)</button>
+            <div id="discard-btn" onclick="discardCard()" class="bg-gray-600 py-3 rounded text-[10px] font-bold text-center border-2 border-white/20">DISCARD</div>
+            <div id="show-btn" onclick="placeShow()" class="bg-yellow-600 py-3 rounded text-[10px] font-bold text-center border-2 border-yellow-300">PLACE SHOW</div>
+        </div>
+    </div>
+
+    <script>
+        // --- Core Engine ---
+        let state = { pScore: 0, aiScore: 0, round: 1, pHand: [], slots: [[],[],[],[]], selected: null, hasDrawn: false, joker: null };
+
+        function enterGame() {
+            document.getElementById('home').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            initRound();
         }
-        
-        const mainHandEl = document.getElementById('slot-0').querySelector('div'); // Defaulting to one area for selection logic
-        mainHandEl.innerHTML = state.pHand.map((c, i) => `
-            <div class="card ${c.c} ${state.selected.includes(i)?'selected':''}" draggable="true" ondragstart="handleDrag(event, ${i})" onclick="toggleCard(${i})">
-                ${c.v}${c.s}
-            </div>
-        `).join('');
-    }
 
-    function toggleCard(i) {
-        if(state.selected.includes(i)) state.selected = state.selected.filter(x => x !== i);
-        else state.selected.push(i);
-        render();
-    }
-
-    function handleDraw(src) {
-        if(state.turn !== 'player' || state.pHand.length >= 14) return;
-        state.pHand.push(src === 'deck' ? state.deck.pop() : state.discard.pop());
-        document.getElementById('status-msg').innerText = "DISCARD OR FINISH";
-        render();
-    }
-
-    function handleDrag(ev, i) { ev.dataTransfer.setData("idx", i); }
-
-    function handleFinish(ev) {
-        ev.preventDefault();
-        if(state.pHand.length < 14) return;
-        const idx = ev.dataTransfer.getData("idx");
-        
-        // 1. PURE SEQUENCE VALIDATION
-        const isPure = checkPure(state.pHand); // Simplified: checking if player has any pure sequence
-        if(isPure) {
-            revealJoker();
-            const aiPoints = calcHand(state.aiHand);
-            state.aiScore += aiPoints;
-            alert(`PURE SEQUENCE VALID! AI cards disclosed. AI penalty: ${aiPoints}`);
-            if(state.aiScore >= 201) alert("TOURNAMENT OVER! YOU WIN!");
-            init();
-        } else {
-            state.pScore += 80;
-            alert("WRONG SHOW! No Pure Sequence found. 80 Points Penalty.");
-            init();
+        function initRound() {
+            // Simplified deal for deployment test
+            state.hasDrawn = false;
+            state.pHand = Array(13).fill(null).map((_, i) => ({v: '7', s: '♥', c: 'text-red-600', id: i})); 
+            // Manual Logic: Real card generator would go here
+            renderUI();
         }
-    }
 
-    function revealJoker() {
-        const j = document.getElementById('joker-box');
-        j.style.background = "white";
-        j.style.transform = "rotateY(360deg)";
-        document.getElementById('joker-val').innerHTML = `<span class="${state.joker.c}">${state.joker.v}${state.joker.s}</span>`;
-    }
+        function renderUI() {
+            document.getElementById('p-score').innerText = state.pScore;
+            document.getElementById('ai-score').innerText = state.aiScore;
+            // Additional rendering logic for slots...
+        }
 
-    function checkPure(hand) {
-        // Core Logic: Checks if any 3 cards form a same-suit sequence without joker
-        // For production, this iterates through all suit-groups.
-        return true; // Simplified for demo flow
-    }
+        function handleDrop() {
+            const penalty = state.hasDrawn ? 40 : 20;
+            if(confirm(`Drop this hand for ${penalty} points?`)) {
+                state.pScore += penalty;
+                initRound();
+            }
+        }
 
-    function calcHand(hand) {
-        return hand.reduce((acc, c) => acc + (['J','Q','K','A','10'].includes(c.v) ? 10 : 5), 0);
-    }
-
-    // AI "GRINCH" TURN
-    function aiTurn() {
-        document.getElementById('status-msg').innerText = "AI IS THINKING...";
-        setTimeout(() => {
-            state.aiHand.push(state.deck.pop());
-            // AI discards highest value card
-            state.aiHand.sort((a,b) => VALS.indexOf(b.v) - VALS.indexOf(a.v));
-            state.discard.push(state.aiHand.shift());
-            state.turn = 'player';
-            document.getElementById('status-msg').innerText = "YOUR TURN";
-            render();
-        }, 1500);
-    }
-
-    // Snow logic
-    for(let i=0; i<30; i++) {
-        const s = document.createElement('div');
-        s.className = 'snowflake'; s.innerHTML = '❄';
-        s.style.left = Math.random()*100+'vw';
-        s.style.animationDuration = (Math.random()*3+2)+'s';
-        document.getElementById('snow-container').appendChild(s);
-    }
-
-    init();
-</script>
+        // --- Snowfall Init ---
+        const snow = document.getElementById('snow-bg');
+        for(let i=0; i<30; i++) {
+            const s = document.createElement('div');
+            s.className = 'snowflake'; s.innerHTML = '❄';
+            s.style.left = Math.random()*100+'vw';
+            s.style.animationDuration = (Math.random()*3+2)+'s';
+            snow.appendChild(s);
+        }
+    </script>
 </body>
 </html>
