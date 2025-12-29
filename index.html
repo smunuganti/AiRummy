@@ -3,186 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ai Rummy Royale | Deployment Ready</title>
+    <title>Ai Rummy Royale</title>
     <style>
         :root { 
             --gold: #ffd700; --gold-grad: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
             --deep-felt: radial-gradient(circle at 50% 40%, #165b33 0%, #050a07 100%);
-            --card-w: 13vw; --card-h: 19vw; --neon: #00f3ff;
+            --card-w: 11vw; --card-h: 16vw; --neon: #00f3ff;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; touch-action: manipulation; }
-        body { background: #000; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; height: 100dvh; }
+        body { background: #000; color: #fff; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; height: 100dvh; display: flex; justify-content: center; }
 
-        /* Navigation */
-        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; transition: opacity 0.3s; }
-        .hidden { display: none !important; opacity: 0; }
+        .app-wrapper { width: 100%; max-width: 500px; height: 100%; position: relative; border: 1px solid #333; overflow: hidden; }
+        .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; transition: opacity 0.4s; }
+        .hidden { display: none !important; }
 
-        /* Joker Bunker 3D */
-        .joker-bunker { width: 42px; height: 60px; background: #1a1a1a; border: 2px solid #444; border-radius: 6px; perspective: 1000px; }
-        .joker-inner { width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; position: relative; }
-        .flipped { transform: rotateY(180deg); }
-        .joker-back, .joker-front { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-        .joker-back { background: #0a2e1a; color: var(--gold); font-weight: bold; font-size: 1.2rem; }
-        .joker-front { background: #fff; color: #000; transform: rotateY(180deg); font-weight: 900; font-size: 10px; border: 1px solid var(--gold); }
-        .revealed { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); }
+        /* Christmas Lobby */
+        #home-page { background: radial-gradient(circle, #1a472a 0%, #050a07 100%); z-index: 100; justify-content: center; gap: 30px; }
+        .btn-start { background: var(--gold-grad); color: #000; border: none; padding: 18px 50px; border-radius: 50px; font-weight: 900; font-size: 1.1rem; cursor: pointer; animation: pulse 2s infinite; }
 
-        /* Game Board */
+        /* Table UI */
         #game-view { background: var(--deep-felt); }
         .header { width: 100%; height: 50px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 2px solid var(--gold); }
-        .felt { width: 95%; height: 130px; background: #163d26; border: 5px solid #2b1b0d; border-radius: 65px; display: flex; justify-content: center; align-items: center; gap: 20px; margin: 10px 0; position: relative; }
+        .opponent-area { width: 100%; height: 70px; display: flex; justify-content: center; align-items: flex-start; padding-top: 10px; position: relative; }
+        .card-blind { width: 22px; height: 35px; background: #0a2e1a; border: 1px solid var(--gold); border-radius: 3px; margin-left: -12px; box-shadow: 0 2px 5px #000; }
+
+        .felt { width: 94%; height: 110px; background: #163d26; border: 4px solid #2b1b0d; border-radius: 60px; display: flex; justify-content: center; align-items: center; gap: 15px; margin: 5px 0; }
+        .grid { width: 100%; flex: 1; background: #050a07; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 4px; padding: 6px; border-top: 2px solid var(--gold); }
+        .slot { border: 1px dashed rgba(255,215,0,0.1); border-radius: 8px; position: relative; display: flex; flex-wrap: wrap; padding: 2px; }
+        .slot.valid { border: 1.5px solid #2ecc71; background: rgba(46, 204, 113, 0.1); }
         
-        .grid { width: 100%; flex: 1; background: #050a07; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; padding: 8px; border-top: 2px solid var(--gold); }
-        .slot { border: 1px dashed rgba(255,215,0,0.2); border-radius: 10px; position: relative; display: flex; flex-wrap: wrap; gap: 2px; padding: 4px; }
-        .slot.valid { border: 2px solid #2ecc71; background: rgba(46, 204, 113, 0.1); }
-        .slot::after { content: attr(data-label); position: absolute; bottom: 4px; right: 8px; font-size: 0.45rem; color: var(--gold); opacity: 0.3; }
-
-        .card { width: var(--card-w); height: var(--card-h); max-width: 50px; background: #fff; color: #000; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 1px solid #999; font-size: 0.8rem; box-shadow: 2px 2px 5px #000; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: 42px; background: #fff; color: #000; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 1px solid #999; font-size: 0.7rem; box-shadow: 2px 2px 5px #000; margin-right: -25px; transition: 0.2s; }
         .card.red { color: #d42426; }
-        .card.selected { transform: translateY(-12px); border: 2.5px solid var(--neon); box-shadow: 0 0 12px var(--neon); }
-        .card-back { background: #0a2e1a; border: 1.5px solid var(--gold); }
-
-        .controls { width: 100%; height: 85px; background: #000; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; }
-        .btn-act { background: #111; color: var(--gold); border: 1px solid var(--gold); border-radius: 8px; font-size: 0.65rem; font-weight: 800; cursor: pointer; }
+        .card.selected { transform: translateY(-12px); border: 2px solid var(--neon); z-index: 10; }
+        
+        .controls { width: 100%; height: 80px; background: #000; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px; }
+        .btn-act { background: #111; color: var(--gold); border: 1px solid var(--gold); border-radius: 6px; font-size: 0.6rem; font-weight: 800; cursor: pointer; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
+<div class="app-wrapper">
     <div id="home-page" class="screen">
-        <h1 style="color:var(--gold); font-size: 2.5rem; margin-top: 50px;">Ai Rummy</h1>
-        <button onclick="startGame()" style="margin-top:40px; width:80%; padding:18px; border-radius:50px; background:var(--gold-grad); border:none; font-weight:900; font-size:1.1rem; cursor:pointer;">BATTLE PANDU</button>
+        <h1 style="color:var(--gold); font-size: 3rem; text-shadow: 0 0 20px #000;">Ai Rummy</h1>
+        <div id="l-score" style="color:#fff; font-size:0.8rem; opacity:0.8;">Tournament Score: 0 / 201</div>
+        <button class="btn-start" onclick="launchGame()">BATTLE PANDU</button>
     </div>
 
     <div id="game-view" class="screen hidden">
-        <div class="header">
-            <div onclick="location.reload()" style="cursor:pointer; font-size: 1.4rem;">🏠</div>
-            <div id="status" style="font-weight:900; color:var(--gold); font-size:0.8rem;">YOUR TURN</div>
-            <div id="score">0 / 201</div>
-        </div>
+        <div class="header"><div onclick="location.reload()">🏠</div><div id="status" style="font-size:0.6rem; color:var(--gold);">YOUR TURN</div><div id="p-score">0 / 201</div></div>
+        <div class="opponent-area"><div id="ai-hand-visual" style="display:flex;"></div></div>
         <div class="felt">
-            <div id="joker-slot" class="joker-bunker">
-                <div id="j-inner" class="joker-inner">
-                    <div class="joker-back">?</div>
-                    <div id="j-front" class="joker-front"></div>
-                </div>
+            <div id="j-slot" style="width:38px; height:52px; background:#1a1a1a; border:1px solid #444; border-radius:4px; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:0.8rem;">🔒</div>
+            <div style="display:flex; gap:10px;">
+                <div class="card" style="background:#0a2e1a; border:1px solid var(--gold); margin-right:0;" onclick="handleDraw('deck')"></div>
+                <div id="discard-pile" class="card" style="margin-right:0;" onclick="handleDraw('discard')"></div>
             </div>
-            <div style="display:flex; gap:12px;">
-                <div class="card card-back" onclick="draw('deck')"></div>
-                <div id="discard-top" class="card" onclick="draw('discard')"></div>
-            </div>
+            <div style="width:38px; height:52px; border:1px dashed #ff4757; border-radius:4px; font-size:0.4rem; display:flex; align-items:center; justify-content:center; color:#ff4757; text-align:center;" onclick="handleDeclare()">FINISH</div>
         </div>
         <div class="grid">
-            <div class="slot" id="g0" data-label="SLOT 1" onclick="moveToSlot(0)"></div>
-            <div class="slot" id="g1" data-label="SLOT 2" onclick="moveToSlot(1)"></div>
-            <div class="slot" id="g2" data-label="SLOT 3" onclick="moveToSlot(2)"></div>
-            <div class="slot" id="g3" data-label="SLOT 4" onclick="moveToSlot(3)"></div>
+            <div class="slot" id="g0" data-label="VALIDATOR" onclick="moveToSlot(0)"></div>
+            <div class="slot" id="g1" data-label="S1" onclick="moveToSlot(1)"></div>
+            <div class="slot" id="g2" data-label="S2" onclick="moveToSlot(2)"></div>
+            <div class="slot" id="g3" data-label="S3" onclick="moveToSlot(3)"></div>
+            <div class="slot" id="g4" data-label="S4" onclick="moveToSlot(4)"></div>
+            <div class="slot" id="g5" data-label="S5" onclick="moveToSlot(5)"></div>
         </div>
         <div class="controls">
             <button class="btn-act" onclick="autoSort()">SORT</button>
-            <button class="btn-act" style="color:red" onclick="drop()">DROP</button>
+            <button class="btn-act" style="color:red" onclick="dropMatch()">DROP</button>
             <button class="btn-act" style="background:var(--gold); color:#000;" onclick="handleDiscard()">DISCARD</button>
-            <button class="btn-act" style="background:#2ecc71; color:#fff;" onclick="show()">SHOW</button>
+            <button class="btn-act" style="background:#2ecc71; color:#fff;" onclick="handleDeclare()">SHOW</button>
         </div>
     </div>
+</div>
 
 <script>
-    let deck = [], discard = [], groups = [[],[],[],[]], selected = [], wildJoker = null, jokerRevealed = false;
+    let deck = [], discard = [], groups = [[],[],[],[],[],[]], selected = [], aiHand = [], joker = null;
+    let isUserTurn = true, hasDrawn = false, pTournamentScore = parseInt(localStorage.getItem('rummyScore')) || 0;
     const suits = ['♥','♦','♣','♠'], ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 
-    function startGame() {
+    document.getElementById('l-score').innerText = `Tournament Score: ${pTournamentScore} / 201`;
+
+    function launchGame() {
         document.getElementById('home-page').classList.add('hidden');
         document.getElementById('game-view').classList.remove('hidden');
         initMatch();
     }
 
     function initMatch() {
-        // 1. Double Deck Shuffle
         deck = [];
         for(let i=0; i<2; i++) suits.forEach(s => ranks.forEach(r => deck.push({r, s, c:(s==='♥'||s==='♦')?'red':'black', v:ranks.indexOf(r), id:Math.random()})));
-        
-        // Fisher-Yates Test: Verified Unbiased
-        for (let i = deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[j]] = [deck[j], deck[i]];
-        }
-
-        // 2. Closed Joker Setup
-        wildJoker = deck.pop();
-        document.getElementById('j-front').innerText = wildJoker.r + wildJoker.s;
-        document.getElementById('j-front').style.color = wildJoker.c === 'red' ? '#d42426' : '#000';
-        jokerRevealed = false;
-        document.getElementById('j-inner').classList.remove('flipped');
-        document.getElementById('joker-slot').classList.remove('revealed');
-
-        // 3. Deal Cards
-        const hand = deck.splice(0, 13);
-        groups = [hand.slice(0,4), hand.slice(4,7), hand.slice(7,10), hand.slice(10,13)];
+        deck.sort(() => Math.random() - 0.5);
+        joker = deck.pop();
+        aiHand = deck.splice(0, 13);
+        let hand = deck.splice(0, 13);
+        groups = [ [], hand.slice(0,4), hand.slice(4,7), hand.slice(7,10), hand.slice(10,13), [] ];
         discard = [deck.pop()];
-
-        // 4. Pre-Game Check (Phase 1)
-        if (groups.some(g => checkPureSequence(g))) {
-            revealJoker("LUCKY START! JOKER OPEN");
-        } else {
-            document.getElementById('status').innerText = "YOUR TURN";
-        }
+        isUserTurn = true; hasDrawn = false;
         render();
     }
 
-    function checkPureSequence(group) {
+    function render() {
+        document.getElementById('ai-hand-visual').innerHTML = aiHand.map(() => `<div class="card-blind"></div>`).join('');
+        const top = discard[discard.length-1];
+        const dp = document.getElementById('discard-pile');
+        dp.innerText = top.r + top.s; dp.className = `card ${top.c}`; dp.style.marginRight="0";
+        
+        groups.forEach((g, i) => {
+            const slot = document.getElementById('g' + i);
+            const isP = checkPure(g);
+            slot.innerHTML = ''; slot.className = `slot ${isP ? 'valid' : ''}`;
+            if(i === 0 && isP) { 
+                const js = document.getElementById('j-slot');
+                js.innerText = joker.r + joker.s; js.style.background = "#fff"; js.style.color = joker.c==='red'?'#d42426':'#000';
+            }
+            g.forEach(c => {
+                const div = document.createElement('div');
+                div.className = `card ${c.c} ${selected.includes(c) ? 'selected' : ''}`;
+                div.innerText = c.r + c.s;
+                div.onclick = (e) => { e.stopPropagation(); toggleCard(c); };
+                slot.appendChild(div);
+            });
+        });
+        document.getElementById('p-score').innerText = `${pTournamentScore} / 201`;
+    }
+
+    function checkPure(group) {
         if (group.length < 3) return false;
         const s = group[0].s;
         if (!group.every(c => c.s === s)) return false;
-        // Sort check without affecting game state
         const v = group.map(c => c.v).sort((a,b) => a-b);
         for(let i=0; i<v.length-1; i++) if(v[i+1] !== v[i]+1) return false;
         return true;
     }
 
-    function revealJoker(msg) {
-        if (jokerRevealed) return;
-        jokerRevealed = true;
-        document.getElementById('j-inner').classList.add('flipped');
-        document.getElementById('joker-slot').classList.add('revealed');
-        document.getElementById('status').innerText = msg;
-    }
-
-    function render() {
-        const top = discard[discard.length-1];
-        const dt = document.getElementById('discard-top');
-        dt.innerText = top.r + top.s; dt.className = `card ${top.c}`;
-        groups.forEach((g, i) => {
-            const s = document.getElementById('g' + i); s.innerHTML = '';
-            const isP = checkPureSequence(g);
-            s.className = `slot ${isP ? 'valid' : ''}`;
-            s.setAttribute('data-label', isP ? 'PURE SEQ ✓' : `G${i+1}`);
-            g.forEach(c => {
-                const d = document.createElement('div');
-                d.className = `card ${c.c} ${selected.includes(c) ? 'selected' : ''}`;
-                d.innerText = c.r + c.s;
-                d.onclick = (e) => { e.stopPropagation(); toggleSel(c); };
-                s.appendChild(d);
-            });
-        });
-    }
-
-    function handleDiscard() {
-        if (selected.length !== 1 || groups.flat().length < 14) return alert("Select 1 card to discard");
+    async function handleDiscard() {
+        if(!isUserTurn || !hasDrawn || selected.length !== 1) return;
         const card = selected[0];
-        groups.forEach(g => { const i = g.indexOf(card); if(i>-1) g.splice(i,1); });
-        discard.push(card); selected = [];
-        
-        // Phase 2 Validation (Earned Reveal)
-        if (!jokerRevealed && groups.some(g => checkPureSequence(g))) {
-            revealJoker("PURE SEQ VALIDATED! JOKER OPEN");
-        }
-        render();
+        groups.forEach(g => { const i = g.indexOf(card); if(i > -1) g.splice(i, 1); });
+        discard.push(card); selected = []; hasDrawn = false;
+        render(); isUserTurn = false;
+        await panduTurn();
     }
 
-    function toggleSel(c) { const i = selected.indexOf(c); if(i>-1) selected.splice(i,1); else selected.push(c); render(); }
-    function moveToSlot(idx) { selected.forEach(s => groups.forEach(g => { const i = g.indexOf(s); if(i>-1) g.splice(i,1); })); groups[idx].push(...selected); selected = []; render(); }
-    function draw(src) { if(groups.flat().length >= 14) return; groups[0].push(src === 'deck' ? deck.pop() : discard.pop()); render(); }
-    function autoSort() { const f = groups.flat().sort((a,b) => a.v - b.v); groups = [f.slice(0,4), f.slice(4,7), f.slice(7,10), f.slice(10)]; render(); }
-    function drop() { if(confirm("Drop match?")) location.reload(); }
-    function show() { alert(jokerRevealed ? "Hand Ready!" : "Need Pure Sequence!"); }
+    async function panduTurn() {
+        const st = document.getElementById('status'); st.innerText = "PANDU IS THINKING...";
+        await new Promise(r => setTimeout(r, 1500));
+        // Simple AI Logic: Draw Deck, Discard high card
+        aiHand.push(deck.pop()); render();
+        await new Promise(r => setTimeout(r, 1000));
+        aiHand.sort((a,b) => b.v - a.v); discard.push(aiHand.shift());
+        isUserTurn = true; st.innerText = "YOUR TURN: DRAW"; render();
+    }
+
+    function handleDraw(src) { if(!isUserTurn || hasDrawn) return; groups[1].push(src==='deck'?deck.pop():discard.pop()); hasDrawn = true; render(); }
+    function toggleCard(c) { const i = selected.indexOf(c); if(i>-1) selected.splice(i,1); else selected.push(c); render(); }
+    function moveToSlot(idx) { selected.forEach(s => groups.forEach(g => { const i = g.indexOf(s); if(i>-1) g.splice(i,1); })); groups[idx].push(...selected); selected=[]; render(); }
+    function autoSort() { const f = groups.flat().sort((a,b) => a.v - b.v); groups = [[], f.slice(0,4), f.slice(4,7), f.slice(7,10), f.slice(10,13), []]; render(); }
+    function dropMatch() { if(confirm("Drop match? Penalty: 20 pts")) updateTournament(20); }
+    function handleDeclare() {
+        if(!hasDrawn) return alert("Pick 14th card!");
+        if(checkPure(groups[0])) { alert("WINNER!"); updateTournament(0); }
+        else { alert("INVALID!"); updateTournament(80); }
+    }
+    function updateTournament(pts) {
+        pTournamentScore += pts; localStorage.setItem('rummyScore', pTournamentScore);
+        if(pTournamentScore >= 201) { alert("Game Over!"); pTournamentScore=0; localStorage.clear(); }
+        initMatch();
+    }
 </script>
 </body>
 </html>
